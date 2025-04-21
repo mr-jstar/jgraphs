@@ -70,7 +70,6 @@ public class MeshGraphView implements GraphView {
             rc[v][0] = leftSep + (int) ((width - 2 * leftSep) * (xy[0] - xmin) / xspan);
             rc[v][1] = topSep + (int) ((height - 2 * topSep) * (ymax - xy[1]) / yspan);
         }
-        System.err.println(this.nodeSize);
     }
 
     @Override

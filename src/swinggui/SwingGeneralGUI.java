@@ -28,12 +28,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
 public class SwingGeneralGUI extends JFrame {
 
-    final static String[] algorithms = {"BFS", "DFS Recursive", "DFS Iterative", "Dijkstra", "Bellman-Ford", "Floyd-Warshall", "Kruskal", "Prim", "Prim_CLRS"};
+    final static String[] algorithms = {"BFS", "DFS Recursive", "DFS Iterative", "Dijkstra", "Bellman-Ford", "Floyd-Warshall", "Kruskal", "Prim", "Prim_CLRS", "Kernighan-Lin"};
 
     final private String nodeScaleViewLabelTxt = "Color scale for nodes (distance): ";
     final private String edgeScaleViewLabelTxt = "Color scale for edges (weights): ";
@@ -72,6 +73,8 @@ public class SwingGeneralGUI extends JFrame {
     private SingleSourceGraphPaths pathsSS = null;
     private AllToAllGraphPaths pathsAll = null;
     private Graph mst = null;
+    
+    private List<Edge> division = null;
 
     ActionListener ggal = new ActionListener() {
         @Override
@@ -92,6 +95,7 @@ public class SwingGeneralGUI extends JFrame {
                 long finish = System.nanoTime();
                 System.out.println((finish - start) / 1000 + " microseconds");
                 pathsSS = null;
+                division = null;
                 nodeScaleViewLabel.setText(nodeScaleViewLabelTxt + " - none - ");
                 System.out.println("Draw graph " + ((GridGraph) graph).getNumColumns() + "x" + ((GridGraph) graph).getNumRows());
                 drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
@@ -180,6 +184,7 @@ public class SwingGeneralGUI extends JFrame {
                 if (fileChooser.showOpenDialog(SwingGeneralGUI.this) == JFileChooser.APPROVE_OPTION) {
                     File file = fileChooser.getSelectedFile();
                     String name = file.getName();
+                    division = null;
                     if (name.endsWith(".poly") || name.endsWith(".node") || name.endsWith(".ele")) {
                         System.out.println("Load mesh");
                         try {
@@ -300,6 +305,7 @@ public class SwingGeneralGUI extends JFrame {
                 try {
                     if (graph != null && nodeNum >= 0) {
                         System.out.println("Node # " + nodeNum);
+                        division = null;
                         if (e.getButton() == MouseEvent.BUTTON1) {
                             if (selectedtAlgorithm.equals("Dijkstra")) {
                                 System.out.println("Dijkstra");
@@ -380,6 +386,14 @@ public class SwingGeneralGUI extends JFrame {
                                 if( graph instanceof GridGraph )
                                     GraphUtils.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
                                 System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
+                                pathsSS = null;
+                                pathsAll = null;
+                            } else if (selectedtAlgorithm.equals("Kernighan-Lin")) {
+                                System.out.println("Kernighan-Lin");
+                                long start = System.nanoTime();
+                                division = GraphUtils.partition_Kernighan_Lin(graph);
+                                long finish = System.nanoTime();
+                                System.out.println((finish - start) / 1000 + " microseconds");
                                 pathsSS = null;
                                 pathsAll = null;
                             }
@@ -496,6 +510,15 @@ public class SwingGeneralGUI extends JFrame {
             Point v = graphView.getPosition(p);
             //System.out.println(p + "@(" + v + ") " + nodeSize);
             gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
+        }
+        
+        if( division != null ) {
+            for( Edge e : division ) {
+                gc.setColor(Color.BLACK);
+                Point vA = graphView.getPosition(e.getNodeA());
+                Point vB = graphView.getPosition(e.getNodeB());
+                gc.drawLine(vA.x, vA.y, vB.x, vB.y);
+            }
         }
 
     }

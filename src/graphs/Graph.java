@@ -1,15 +1,13 @@
 package graphs;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Reader;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
  *
  * @author jstar
  */
-public interface Graph {
+public interface Graph extends Iterable<Edge> {
 
     public int getNumNodes();
 
@@ -24,5 +22,10 @@ public interface Graph {
     public String getNodeLabel(int n);
 
     public Set<Edge> getConnectionsList(int nodeNumber);
+    
+    @Override
+    default public Iterator<Edge> iterator() {
+        return getAllEdges().iterator();
+    }
 
 }

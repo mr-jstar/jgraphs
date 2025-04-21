@@ -50,7 +50,7 @@ public class GraphUtils {
                     h[c] = tmp;
                     pos[h[p]] = p;
                     pos[h[c]] = c;
-                    c= p;
+                    c = p;
                 } else {
                     return;
                 }
@@ -327,7 +327,7 @@ public class GraphUtils {
         java.util.Arrays.fill(c, WHITE);
 
         c[startNode] = GRAY;
-        d[startNode] = 0;   
+        d[startNode] = 0;
         p[startNode] = -1;  // made by Arrays.fill, repeated here for clarity
         java.util.Deque<Integer> fifo = new java.util.ArrayDeque<>();
         fifo.add(startNode);
@@ -639,6 +639,165 @@ public class GraphUtils {
             return new GridGraph(numColumns, numRows, connectLists);
         } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
             throw new IOException("GridGraph can not read graph: " + e);
+        }
+    }
+
+    public static final int ITER_LIMIT = 16;
+
+    public static List<Edge> partition_Kernighan_Lin(Graph graph) {
+        Set<Integer> A = new HashSet<>(), B = new HashSet<>();
+
+        // Inicjalny podział węzłów wg odległości od węzła 0
+        SingleSourceGraphPaths p0 = dijkstra(graph, 0);
+        List<Integer> nodeList = new ArrayList<>();
+        for (int i = 0; i < graph.getNumNodes(); i++) {
+            nodeList.add(i);
+        }
+        nodeList.sort((Integer i, Integer j) -> p0.d[i] < p0.d[j] ? -1 : (p0.d[i] == p0.d[j] ? 0 : 1));
+        int half = nodeList.size() / 2;
+        A.addAll(nodeList.subList(0, half));
+        B.addAll(nodeList.subList(half, nodeList.size()));
+
+        boolean improvement = true;
+        int nit = 0;
+        while (improvement) {
+            System.out.println(nit + ":" + A + B);
+            improvement = false;
+            List<Swap> swaps = new ArrayList<>();
+
+            // Oblicz D dla każdego węzła
+            Map<Integer, Double> D = calculateD(graph, A, B);
+
+            // Wybieranie par do zamiany
+            Set<Integer> usedA = new HashSet<>();
+            Set<Integer> usedB = new HashSet<>();
+
+            while (usedA.size() < A.size() && usedB.size() < B.size()) {
+                Swap bestSwap = findBestSwap(graph, A, B, D, usedA, usedB);
+                if (bestSwap == null) {
+                    break;
+                }
+                swaps.add(bestSwap);
+                usedA.add(bestSwap.nodeA);
+                usedB.add(bestSwap.nodeB);
+
+                // Aktualizacja D po każdej zamianie
+                D.put(bestSwap.nodeA, D.get(bestSwap.nodeA) - bestSwap.gain);
+                D.put(bestSwap.nodeB, D.get(bestSwap.nodeB) - bestSwap.gain);
+            }
+
+            // Znalezienie optymalnego momentu zatrzymania
+            double maxGain = 0;
+            int maxIndex = -1;
+            double totalGain = 0;
+            for (int i = 0; i < swaps.size(); i++) {
+                totalGain += swaps.get(i).gain;
+                if (totalGain > maxGain) {
+                    maxGain = totalGain;
+                    maxIndex = i;
+                }
+            }
+
+            if (maxGain > 0) {
+                improvement = true;
+                System.out.println(maxGain);
+                System.out.println(swaps);
+                for (int i = 0; i <= maxIndex; i++) {
+                    A.remove(swaps.get(i).nodeA);
+                    B.remove(swaps.get(i).nodeB);
+                    A.add(swaps.get(i).nodeB);
+                    B.add(swaps.get(i).nodeA);
+                }
+            }
+            if (nit++ > ITER_LIMIT) {
+                break;
+            }
+        }
+
+        System.out.println("Final :" + A + B);
+
+        // Tworzenie dwóch grafów na podstawie podziału
+        List<Edge> edgesA = new ArrayList<>(), edgesB = new ArrayList<>(), edgesCut = new ArrayList<>();
+        for (Edge edge : graph) {
+            if (A.contains(edge.getNodeA()) && A.contains(edge.getNodeB())) {
+                edgesA.add(edge);
+            } else if (B.contains(edge.getNodeA()) && B.contains(edge.getNodeB())) {
+                edgesB.add(edge);
+            } else {
+                edgesCut.add(edge);
+            }
+        }
+
+        return edgesCut;
+    }
+
+    private static Map<Integer, Double> calculateD(Graph graph, Set<Integer> A, Set<Integer> B) {
+        Map<Integer, Double> D = new HashMap<>();
+        for (Integer node : A) {
+            D.put(node, 0.0);
+        }
+        for (Integer node : B) {
+            D.put(node, 0.0);
+        }
+
+        for (Edge edge : graph) {
+            if (A.contains(edge.getNodeA()) && B.contains(edge.getNodeB())
+                    || A.contains(edge.getNodeB()) && B.contains(edge.getNodeA())) {
+                D.put(edge.getNodeA(), D.get(edge.getNodeA()) + edge.getWeight());
+                D.put(edge.getNodeB(), D.get(edge.getNodeB()) + edge.getWeight());
+            } else {
+                D.put(edge.getNodeA(), D.get(edge.getNodeA()) - edge.getWeight());
+                D.put(edge.getNodeB(), D.get(edge.getNodeB()) - edge.getWeight());
+            }
+        }
+        return D;
+    }
+
+    private static Swap findBestSwap(Graph graph, Set<Integer> A, Set<Integer> B, Map<Integer, Double> D, Set<Integer> usedA, Set<Integer> usedB) {
+        Swap bestSwap = null;
+        double maxGain = Double.NEGATIVE_INFINITY;
+
+        for (Integer a : A) {
+            if (usedA.contains(a)) {
+                continue;
+            }
+            for (Integer b : B) {
+                if (usedB.contains(b)) {
+                    continue;
+                }
+
+                double edgeWeight = 0;
+                for (Edge edge : graph) {
+                    if ((edge.getNodeA() == a && edge.getNodeB() == b)
+                            || (edge.getNodeB() == a && edge.getNodeA() == b)) {
+                        edgeWeight = edge.getWeight();
+                        break;
+                    }
+                }
+                double gain = D.get(a) + D.get(b) - 2 * edgeWeight;
+                if (gain > maxGain) {
+                    maxGain = gain;
+                    bestSwap = new Swap(a, b, gain);
+                }
+            }
+        }
+        return bestSwap;
+    }
+
+    private static class Swap {
+
+        Integer nodeA, nodeB;
+        double gain;
+
+        Swap(Integer nodeA, Integer nodeB, double gain) {
+            this.nodeA = nodeA;
+            this.nodeB = nodeB;
+            this.gain = gain;
+        }
+
+        @Override
+        public String toString() {
+            return nodeA + "<->" + nodeB;
         }
     }
 }

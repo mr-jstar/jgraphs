@@ -5,7 +5,7 @@ import graphs.Graph;
 import graphs.GridGraph;
 import graphs.Edge;
 import graphs.SingleSourceGraphPaths;
-import graphs.GraphUtils;
+import graphs.GraphAlgorithms;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -186,7 +186,7 @@ public class FXGUI extends Application {
                     if (file != null) {
                         System.out.println("Save graph");
                         try {
-                            GraphUtils.saveGridGraph(graph, new PrintWriter(file));
+                            GraphAlgorithms.saveGridGraph(graph, new PrintWriter(file));
                         } catch (IOException e) {
                             System.out.println("NOT SAVED: " + e.getLocalizedMessage());
                         }
@@ -210,7 +210,7 @@ public class FXGUI extends Application {
                     System.out.println("Load graph");
                     try {
                         Reader r = new FileReader(file);
-                        graph = GraphUtils.readGridGraph(r);
+                        graph = GraphAlgorithms.readGridGraph(r);
                         r.close();
                         sTextField.setText(graph.getNumColumns() + " x " + graph.getNumRows());
                         minWght = graph.getMinEdgeWeight();
@@ -296,7 +296,7 @@ public class FXGUI extends Application {
                             if (selectedtAlgorithm.equals("Dijkstra")) {
                                 System.out.println("Dijkstra");
                                 long start = System.nanoTime();
-                                pathsSS = GraphUtils.dijkstra(graph, graph.nodeNum(r, c));
+                                pathsSS = GraphAlgorithms.dijkstra(graph, graph.nodeNum(r, c));
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 mst = null;
@@ -304,7 +304,7 @@ public class FXGUI extends Application {
                             } else if (selectedtAlgorithm.equals("Bellman-Ford")) {
                                 System.out.println("Bellman-Ford");
                                 long start = System.nanoTime();
-                                pathsSS = GraphUtils.bellmanFord(graph, graph.nodeNum(r, c));
+                                pathsSS = GraphAlgorithms.bellmanFord(graph, graph.nodeNum(r, c));
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 mst = null;
@@ -312,7 +312,7 @@ public class FXGUI extends Application {
                             } else if (selectedtAlgorithm.equals("Floyd-Warshall")) {
                                 System.out.println("Floyd-Warshall");
                                 long start = System.nanoTime();
-                                pathsAll = GraphUtils.floydWarshall(graph);
+                                pathsAll = GraphAlgorithms.floydWarshall(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 pathsSS = pathsAll.getSSPaths(graph.nodeNum(r, c));
@@ -320,7 +320,7 @@ public class FXGUI extends Application {
                             } else if (selectedtAlgorithm.equals("BFS")) {
                                 System.out.println("BFS");
                                 long start = System.nanoTime();
-                                pathsSS = GraphUtils.bfs(graph, graph.nodeNum(r, c));
+                                pathsSS = GraphAlgorithms.bfs(graph, graph.nodeNum(r, c));
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 mst = null;
@@ -328,7 +328,7 @@ public class FXGUI extends Application {
                             } else if (selectedtAlgorithm.equals("DFS Recursive")) {
                                 System.out.println("DFS Recursive");
                                 long start = System.nanoTime();
-                                pathsSS = GraphUtils.dfs(graph);
+                                pathsSS = GraphAlgorithms.dfs(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 mst = null;
@@ -336,7 +336,7 @@ public class FXGUI extends Application {
                             } else if (selectedtAlgorithm.equals("DFS Iterative")) {
                                 System.out.println("Iterative DFS");
                                 long start = System.nanoTime();
-                                pathsSS = GraphUtils.dfs_iterative(graph);
+                                pathsSS = GraphAlgorithms.dfs_iterative(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 mst = null;
@@ -344,30 +344,30 @@ public class FXGUI extends Application {
                             } else if (selectedtAlgorithm.equals("Kruskal")) {
                                 System.out.println("MST by Kruskal");
                                 long start = System.nanoTime();
-                                mst = GraphUtils.kruskal(graph);
+                                mst = GraphAlgorithms.kruskal(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
-                                GraphUtils.saveGridGraph( new GridGraph(graph.getNumColumns(), graph.getNumRows(), mst),new PrintWriter(new File("LastMST")));
+                                GraphAlgorithms.saveGridGraph( new GridGraph(graph.getNumColumns(), graph.getNumRows(), mst),new PrintWriter(new File("LastMST")));
                                 System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
                                 pathsSS = null;
                                 pathsAll = null;
                             } else if (selectedtAlgorithm.equals("Prim")) {
                                 System.out.println("MST by Prim");
                                 long start = System.nanoTime();
-                                mst = GraphUtils.prim(graph);
+                                mst = GraphAlgorithms.prim(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
-                                GraphUtils.saveGridGraph(new GridGraph(graph.getNumColumns(), graph.getNumRows(), mst),new PrintWriter(new File("LastMST")));
+                                GraphAlgorithms.saveGridGraph(new GridGraph(graph.getNumColumns(), graph.getNumRows(), mst),new PrintWriter(new File("LastMST")));
                                 System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
                                 pathsSS = null;
                                 pathsAll = null;
                             } else if (selectedtAlgorithm.equals("Prim_CLRS")) {
                                 System.out.println("MST by Prim");
                                 long start = System.nanoTime();
-                                mst = GraphUtils.classical_prim(graph);
+                                mst = GraphAlgorithms.classical_prim(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
-                                GraphUtils.saveGridGraph(new GridGraph(graph.getNumColumns(), graph.getNumRows(), mst),new PrintWriter(new File("LastMST")));
+                                GraphAlgorithms.saveGridGraph(new GridGraph(graph.getNumColumns(), graph.getNumRows(), mst),new PrintWriter(new File("LastMST")));
                                 System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
                                 pathsSS = null;
                                 pathsAll = null;

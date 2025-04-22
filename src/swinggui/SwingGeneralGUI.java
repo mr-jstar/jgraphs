@@ -11,7 +11,7 @@ import fem.mesh.IMesh;
 import graphs.AllToAllGraphPaths;
 import graphs.Edge;
 import graphs.Graph;
-import graphs.GraphUtils;
+import graphs.GraphAlgorithms;
 import graphs.GridGraph;
 import graphs.SingleSourceGraphPaths;
 import javax.swing.*;
@@ -39,7 +39,7 @@ public class SwingGeneralGUI extends JFrame {
     final private String nodeScaleViewLabelTxt = "Color scale for nodes (distance): ";
     final private String edgeScaleViewLabelTxt = "Color scale for edges (weights): ";
 
-    final static int DEFAULTWIDTH = 1600;
+    final static int DEFAULTWIDTH = 2000;
     final static int DEFAULTHEIGHT = DEFAULTWIDTH - 200;
 
     final static int MINNODESIZE = 10;
@@ -69,14 +69,15 @@ public class SwingGeneralGUI extends JFrame {
     private JLabel edgeScaleViewLabel;
 
     private ButtonGroup algGroup;
+    private JPanel algPanel;
 
     private SingleSourceGraphPaths pathsSS = null;
     private AllToAllGraphPaths pathsAll = null;
     private Graph mst = null;
-    
+
     private List<Edge> division = null;
 
-    ActionListener ggal = new ActionListener() {
+    ActionListener generateGridGraph = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
@@ -95,6 +96,7 @@ public class SwingGeneralGUI extends JFrame {
                 long finish = System.nanoTime();
                 System.out.println((finish - start) / 1000 + " microseconds");
                 pathsSS = null;
+                pathsAll = null;
                 division = null;
                 nodeScaleViewLabel.setText(nodeScaleViewLabelTxt + " - none - ");
                 System.out.println("Draw graph " + ((GridGraph) graph).getNumColumns() + "x" + ((GridGraph) graph).getNumRows());
@@ -116,7 +118,7 @@ public class SwingGeneralGUI extends JFrame {
         JLabel gridLabel = new JLabel("Grid size:");
         gridSizeTextField = new JTextField(10);
         gridSizeTextField.setText("10 x 10");
-        gridSizeTextField.addActionListener(ggal);
+        gridSizeTextField.addActionListener(generateGridGraph);
 
         JLabel edgeLabel = new JLabel("Edge weight range:");
         edgeWeightRangeTextField = new JTextField(10);
@@ -127,7 +129,7 @@ public class SwingGeneralGUI extends JFrame {
         edgesPerNodeTextField.setText("4");
 
         JButton generateButton = new JButton("Generate");
-        generateButton.addActionListener(ggal);
+        generateButton.addActionListener(generateGridGraph);
 
         JButton redrawButton = new JButton("Redraw");
         redrawButton.addActionListener(new ActionListener() {
@@ -150,6 +152,8 @@ public class SwingGeneralGUI extends JFrame {
                 graph = null;
                 graphView = null;
                 pathsSS = null;
+                pathsAll = null;
+                division = null;
                 nodeScaleViewLabel.setText(nodeScaleViewLabelTxt + " - none - ");
                 edgeColorMapLabel.setIcon(null);
                 nodeColorMapLabel.setIcon(null);
@@ -167,7 +171,7 @@ public class SwingGeneralGUI extends JFrame {
                         File file = fileChooser.getSelectedFile();
                         System.out.println("Save graph");
                         try {
-                            GraphUtils.saveGridGraph(gridGraph, new PrintWriter(file));
+                            GraphAlgorithms.saveGridGraph(gridGraph, new PrintWriter(file));
                         } catch (IOException e) {
                             System.out.println("NOT SAVED: " + e.getLocalizedMessage());
                         }
@@ -207,7 +211,7 @@ public class SwingGeneralGUI extends JFrame {
                         System.out.println("Load graph");
                         try {
                             Reader r = new FileReader(file);
-                            graph = GraphUtils.readGridGraph(r);
+                            graph = GraphAlgorithms.readGridGraph(r);
                             graphView = new GridGraphView((GridGraph) graph);
                             r.close();
                             gridSizeTextField.setText(((GridGraph) graph).getNumColumns() + " x " + ((GridGraph) graph).getNumRows());
@@ -268,7 +272,7 @@ public class SwingGeneralGUI extends JFrame {
 
         algGroup = new ButtonGroup();
         JPanel abPanel = new JPanel();
-        abPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        abPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0));
         for (String s : algorithms) {
             JRadioButton aB = new JRadioButton(s);
             aB.setActionCommand(s);
@@ -276,11 +280,11 @@ public class SwingGeneralGUI extends JFrame {
             aB.setSelected(true);
             abPanel.add(aB);
         }
-        JPanel algPanel = new JPanel();
+        algPanel = new JPanel();
         algPanel.setBackground(Color.LIGHT_GRAY);
-        algPanel.add(new JLabel("Operation: "));
+        algPanel.add(new JLabel("Algorithm: "));
         algPanel.add(abPanel);
-        algPanel.add(new JLabel(" Click node to start with."));
+        algPanel.add(new JLabel(" Click the node you want to start with."));
         changeFontSize(6f, algPanel);
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BorderLayout());
@@ -292,6 +296,9 @@ public class SwingGeneralGUI extends JFrame {
         canvas.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (graphView == null) {
+                    return;
+                }
 
                 int nodeNum = graphView.getNodeNum(e.getX(), e.getY());
 
@@ -301,6 +308,10 @@ public class SwingGeneralGUI extends JFrame {
                 String selectedtAlgorithm = algGroup.getSelection().getActionCommand();
                 if (selectedtAlgorithm == null) {
                     selectedtAlgorithm = "";
+                } else {
+                    algPanel.setForeground(Color.GREEN);
+                    algPanel.repaint();
+                    System.err.println(selectedtAlgorithm);
                 }
                 try {
                     if (graph != null && nodeNum >= 0) {
@@ -310,7 +321,7 @@ public class SwingGeneralGUI extends JFrame {
                             if (selectedtAlgorithm.equals("Dijkstra")) {
                                 System.out.println("Dijkstra");
                                 long start = System.nanoTime();
-                                pathsSS = GraphUtils.dijkstra(graph, nodeNum);
+                                pathsSS = GraphAlgorithms.dijkstra(graph, nodeNum);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 mst = null;
@@ -318,7 +329,7 @@ public class SwingGeneralGUI extends JFrame {
                             } else if (selectedtAlgorithm.equals("Bellman-Ford")) {
                                 System.out.println("Bellman-Ford");
                                 long start = System.nanoTime();
-                                pathsSS = GraphUtils.bellmanFord(graph, nodeNum);
+                                pathsSS = GraphAlgorithms.bellmanFord(graph, nodeNum);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 mst = null;
@@ -326,7 +337,7 @@ public class SwingGeneralGUI extends JFrame {
                             } else if (selectedtAlgorithm.equals("Floyd-Warshall")) {
                                 System.out.println("Floyd-Warshall");
                                 long start = System.nanoTime();
-                                pathsAll = GraphUtils.floydWarshall(graph);
+                                pathsAll = GraphAlgorithms.floydWarshall(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 pathsSS = pathsAll.getSSPaths(nodeNum);
@@ -334,7 +345,7 @@ public class SwingGeneralGUI extends JFrame {
                             } else if (selectedtAlgorithm.equals("BFS")) {
                                 System.out.println("BFS");
                                 long start = System.nanoTime();
-                                pathsSS = GraphUtils.bfs(graph, nodeNum);
+                                pathsSS = GraphAlgorithms.bfs(graph, nodeNum);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 mst = null;
@@ -342,7 +353,7 @@ public class SwingGeneralGUI extends JFrame {
                             } else if (selectedtAlgorithm.equals("DFS Recursive")) {
                                 System.out.println("DFS Recursive");
                                 long start = System.nanoTime();
-                                pathsSS = GraphUtils.dfs(graph);
+                                pathsSS = GraphAlgorithms.dfs(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 mst = null;
@@ -350,7 +361,7 @@ public class SwingGeneralGUI extends JFrame {
                             } else if (selectedtAlgorithm.equals("DFS Iterative")) {
                                 System.out.println("Iterative DFS");
                                 long start = System.nanoTime();
-                                pathsSS = GraphUtils.dfs_iterative(graph);
+                                pathsSS = GraphAlgorithms.dfs_iterative(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 mst = null;
@@ -358,46 +369,59 @@ public class SwingGeneralGUI extends JFrame {
                             } else if (selectedtAlgorithm.equals("Kruskal")) {
                                 System.out.println("MST by Kruskal");
                                 long start = System.nanoTime();
-                                mst = GraphUtils.kruskal(graph);
+                                mst = GraphAlgorithms.kruskal(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
-                                if( graph instanceof GridGraph )
-                                    GraphUtils.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
+                                if (graph instanceof GridGraph) {
+                                    GraphAlgorithms.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
+                                }
                                 System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
                                 pathsSS = null;
                                 pathsAll = null;
                             } else if (selectedtAlgorithm.equals("Prim")) {
                                 System.out.println("MST by Prim");
                                 long start = System.nanoTime();
-                                mst = GraphUtils.prim(graph);
+                                mst = GraphAlgorithms.prim(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
-                                if( graph instanceof GridGraph )
-                                    GraphUtils.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
+                                if (graph instanceof GridGraph) {
+                                    GraphAlgorithms.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
+                                }
                                 System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
                                 pathsSS = null;
                                 pathsAll = null;
                             } else if (selectedtAlgorithm.equals("Prim_CLRS")) {
                                 System.out.println("MST by Prim");
                                 long start = System.nanoTime();
-                                mst = GraphUtils.classical_prim(graph);
+                                mst = GraphAlgorithms.classical_prim(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
-                                if( graph instanceof GridGraph )
-                                    GraphUtils.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
+                                if (graph instanceof GridGraph) {
+                                    GraphAlgorithms.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
+                                }
                                 System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
                                 pathsSS = null;
                                 pathsAll = null;
                             } else if (selectedtAlgorithm.equals("Kernighan-Lin")) {
-                                System.out.println("Kernighan-Lin");
-                                long start = System.nanoTime();
-                                division = GraphUtils.partition_Kernighan_Lin(graph,nodeNum);
-                                long finish = System.nanoTime();
-                                System.out.println((finish - start) / 1000 + " microseconds");
-                                pathsSS = null;
-                                pathsAll = null;
+                                (new Thread() {
+                                    {
+                                        setDaemon(true);
+                                    }
+
+                                    @Override
+                                    public void run() {
+                                        System.out.println("Kernighan-Lin");
+                                        long start = System.nanoTime();
+                                        division = GraphAlgorithms.partition_Kernighan_Lin(graph, nodeNum).get(0);
+                                        long finish = System.nanoTime();
+                                        System.out.println((finish - start) / 1000 + " microseconds");
+                                        pathsSS = null;
+                                        pathsAll = null;
+                                        drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                                    }
+                                }).start();
                             }
-                            drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+
                             if (pathsSS != null) {
                                 colorNodes(canvas.getGraphics());
                                 ArrayList<Integer> longestPath = decodePathTo(pathsSS.farthest);
@@ -433,7 +457,7 @@ public class SwingGeneralGUI extends JFrame {
                 } catch (Exception ex) {
                     System.out.println(ex.getLocalizedMessage());
                 }
-
+                algPanel.setBackground(Color.LIGHT_GRAY);
             }
         });
         add(canvas, BorderLayout.CENTER);
@@ -511,9 +535,9 @@ public class SwingGeneralGUI extends JFrame {
             //System.out.println(p + "@(" + v + ") " + nodeSize);
             gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
         }
-        
-        if( division != null ) {
-            for( Edge e : division ) {
+
+        if (division != null) {
+            for (Edge e : division) {
                 gc.setColor(Color.BLACK);
                 Point vA = graphView.getPosition(e.getNodeA());
                 Point vB = graphView.getPosition(e.getNodeB());

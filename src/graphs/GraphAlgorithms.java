@@ -12,7 +12,7 @@ import java.text.DecimalFormat;
  *
  * @author jstar
  */
-public class GraphUtils {
+public class GraphAlgorithms {
 
     static final int WHITE = 0;
     static final int GRAY = 1;
@@ -104,7 +104,7 @@ public class GraphUtils {
         }
 
         public String toString() {
-            String ret = new String("[");
+            String ret = "[";
             for (int i = 0; i < n; i++) {
                 ret = ret + " (" + h[i] + ":" + d[h[i]] + ")";
             }
@@ -129,7 +129,7 @@ public class GraphUtils {
             r.close();
             return g;
         } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-            throw new IOException("GridGraph can not read graph: " + e.getMessage());
+            throw new IOException("Can not read graph: " + e.getMessage());
         }
     }
 
@@ -231,9 +231,9 @@ public class GraphUtils {
 
     static class Forest { // set of grah-trees, very simple (not effective) implementation 
 
-        private ModifiableGraph[] f;
+        private final ModifiableGraph[] f;
         int n;
-        private int[] node2TreeMap;
+        private final int[] node2TreeMap;
         int nTrees;
 
         public Forest(int size) {
@@ -644,7 +644,7 @@ public class GraphUtils {
 
     public static final int ITER_LIMIT = 16;
 
-    public static List<Edge> partition_Kernighan_Lin(Graph graph, int startNode) {
+    public static List<List<Edge>> partition_Kernighan_Lin(Graph graph, int startNode) {
         Set<Integer> A = new HashSet<>(), B = new HashSet<>();
 
         // Inicjalny podział węzłów wg odległości od węzła startNode
@@ -661,9 +661,9 @@ public class GraphUtils {
         boolean improvement = true;
         int nit = 0;
         while (improvement) {
-            System.err.println(nit + ":");
-            System.err.println(A);
-            System.err.println(B);
+            System.err.println("Kernighan-Lin iteration #" + nit + ":");
+            System.err.println("A: " + A);
+            System.err.println("B: " + B);
             improvement = false;
             List<Swap> swaps = new ArrayList<>();
 
@@ -679,6 +679,7 @@ public class GraphUtils {
                 if (bestSwap == null) {
                     break;
                 }
+                System.err.println("Best swap: " + bestSwap);
                 swaps.add(bestSwap);
                 usedA.add(bestSwap.nodeA);
                 usedB.add(bestSwap.nodeB);
@@ -702,8 +703,8 @@ public class GraphUtils {
 
             if (maxGain > 0) {
                 improvement = true;
-                System.out.println(maxGain);
-                System.out.println(swaps);
+                System.out.println("Max Gain: " + maxGain);
+                System.out.println("Swaps: " + swaps);
                 for (int i = 0; i <= maxIndex; i++) {
                     A.remove(swaps.get(i).nodeA);
                     B.remove(swaps.get(i).nodeB);
@@ -730,7 +731,9 @@ public class GraphUtils {
             }
         }
 
-        return edgesCut;
+        List<List<Edge>> result = new ArrayList<>();
+        result.add( edgesCut ); result.add( edgesA ); result.add( edgesB );
+        return result;
     }
 
     private static Map<Integer, Double> calculateD(Graph graph, Set<Integer> A, Set<Integer> B) {
@@ -799,7 +802,7 @@ public class GraphUtils {
 
         @Override
         public String toString() {
-            return nodeA + "<->" + nodeB;
+            return nodeA + "<->" + nodeB + " : " + gain;
         }
     }
 }

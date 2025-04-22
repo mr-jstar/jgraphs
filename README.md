@@ -1,1 +1,1 @@
-Demo for graph algorithms/
+Demo for graph algorithms.

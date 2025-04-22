@@ -42,8 +42,6 @@ public class SwingGeneralGUI extends JFrame {
     final static int DEFAULTWIDTH = 2000;
     final static int DEFAULTHEIGHT = DEFAULTWIDTH - 200;
 
-    final static int MINNODESIZE = 10;
-    final static int BASICNODESEP = 80;
     final static int BASICNODESIZE = 20;
 
     private int leftSep = 10;
@@ -106,7 +104,7 @@ public class SwingGeneralGUI extends JFrame {
                 System.out.println("Draw graph " + ((GridGraph) graph).getNumColumns() + "x" + ((GridGraph) graph).getNumRows());
                 drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
             } catch (Exception ex) {
-                System.err.println(ex.getMessage());
+                error(ex.getClass() + ": " + ex.getMessage());
             }
         }
 
@@ -178,7 +176,7 @@ public class SwingGeneralGUI extends JFrame {
                         try {
                             GraphAlgorithms.saveGridGraph(gridGraph, new PrintWriter(file));
                         } catch (IOException e) {
-                            System.out.println("NOT SAVED: " + e.getLocalizedMessage());
+                            error("GRAPH NOT SAVED: " + e.getLocalizedMessage());
                         }
                     }
                 }
@@ -203,7 +201,6 @@ public class SwingGeneralGUI extends JFrame {
                             graphView = new MeshGraphView(mesh);
                             minWght = graph.getMinEdgeWeight();
                             maxWght = graph.getMaxEdgeWeight();
-                            System.err.println(minWght + "-" + maxWght);
                             edgeWeightRangeTextField.setText(String.format(Locale.US, "%.3g", minWght) + " : " + String.format(Locale.US, "%.3g", maxWght));
                             edgeScaleViewLabel.setText(edgeScaleViewLabelTxt + String.format(Locale.US, "%.3g", minWght) + "--" + String.format(Locale.US, "%.3g", maxWght));
                             edgeCM.setMin(minWght);
@@ -211,7 +208,7 @@ public class SwingGeneralGUI extends JFrame {
                             edgeColorMapLabel.setIcon(new ImageIcon(edgeCM.createColorScaleImage(300, 20, SwingConstants.HORIZONTAL)));
                             drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
                         } catch (Exception ex) {
-                            System.out.println("NOT LOADED: " + ex.getLocalizedMessage());
+                            error("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
                         }
                     } else {
                         System.out.println("Load graph");
@@ -230,7 +227,7 @@ public class SwingGeneralGUI extends JFrame {
                             edgeColorMapLabel.setIcon(new ImageIcon(edgeCM.createColorScaleImage(300, 20, SwingConstants.HORIZONTAL)));
                             drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
                         } catch (IOException ex) {
-                            System.out.println("NOT LOADED: " + ex.getLocalizedMessage());
+                            error("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
                         }
                     }
                 }
@@ -310,7 +307,7 @@ public class SwingGeneralGUI extends JFrame {
                 
                 for( Thread t : runningAlgorithms )
                     if( t.isAlive() ) {
-                        System.err.println("something still running!");
+                        error("Something still running!");
                         return;
                     }
 
@@ -408,7 +405,7 @@ public class SwingGeneralGUI extends JFrame {
                                                 GraphAlgorithms.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
                                                 System.out.println("MST saved as GridGraph to file \"LastMST\"");
                                             } catch (IOException ex) {
-                                                System.out.println(ex.getLocalizedMessage());
+                                                error("MST not saved: " + ex.getLocalizedMessage());
                                             }
                                         }                                       
                                         pathsSS = null;
@@ -435,7 +432,7 @@ public class SwingGeneralGUI extends JFrame {
                                                 GraphAlgorithms.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
                                                 System.out.println("MST saved as GridGraph to file \"LastMST\"");
                                             } catch (IOException ex) {
-                                                System.out.println(ex.getLocalizedMessage());
+                                                error("MST not saved: " + ex.getLocalizedMessage());
                                             }
                                         }
                                         pathsSS = null;
@@ -499,7 +496,7 @@ public class SwingGeneralGUI extends JFrame {
                         }
                     }
                 } catch (Exception ex) {
-                    System.out.println(ex.getLocalizedMessage());
+                    error(ex.getClass() + ": " + ex.getLocalizedMessage());
                 }
                 algPanel.setBackground(Color.LIGHT_GRAY);
             }
@@ -674,6 +671,10 @@ public class SwingGeneralGUI extends JFrame {
             System.out.print(" " + path.get(i));
         }
         System.out.println("\t length = " + pathsSS.d[path.get(path.size() - 1)]);
+    }
+    
+    private void error( String msg ) {
+        JOptionPane.showMessageDialog(this, msg, "Something went wrong!", JOptionPane.QUESTION_MESSAGE);
     }
 
     public static void main(String[] args) {

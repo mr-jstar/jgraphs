@@ -642,7 +642,7 @@ public class GraphAlgorithms {
         }
     }
 
-    public static final int ITER_LIMIT = 32;
+    public static final int ITER_LIMIT = 255;
 
     public static List<List<Edge>> partition_Kernighan_Lin(Graph graph, int startNode) {
         Set<Integer> A = new HashSet<>(), B = new HashSet<>();

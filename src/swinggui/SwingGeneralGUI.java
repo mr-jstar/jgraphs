@@ -76,7 +76,7 @@ public class SwingGeneralGUI extends JFrame {
     private List<Thread> runningAlgorithms = new ArrayList<>();
 
     private List<Edge> division = null;
-    
+
     private String lastUsedDirectory = ".";
 
     ActionListener generateGridGraph = new ActionListener() {
@@ -304,12 +304,13 @@ public class SwingGeneralGUI extends JFrame {
                 }
 
                 int nodeNum = graphView.getNodeNum(e.getX(), e.getY());
-                
-                for( Thread t : runningAlgorithms )
-                    if( t.isAlive() ) {
+
+                for (Thread t : runningAlgorithms) {
+                    if (t.isAlive()) {
                         error("Something still running!");
                         return;
                     }
+                }
 
                 System.out.println("(" + e.getX() + "," + e.getY() + ") -> " + nodeNum);
 
@@ -407,7 +408,7 @@ public class SwingGeneralGUI extends JFrame {
                                             } catch (IOException ex) {
                                                 error("MST not saved: " + ex.getLocalizedMessage());
                                             }
-                                        }                                       
+                                        }
                                         pathsSS = null;
                                         pathsAll = null;
                                     }
@@ -569,13 +570,6 @@ public class SwingGeneralGUI extends JFrame {
                 gc.drawLine(vA.x, vA.y, vB.x, vB.y);
             }
         }
-        gc.setColor(Color.DARK_GRAY);
-        int nodeSize = graphView.getNodeSize();
-        for (int p = 0; p < graph.getNumNodes(); p++) {
-            Point v = graphView.getPosition(p);
-            //System.out.println(p + "@(" + v + ") " + nodeSize);
-            gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
-        }
 
         if (division != null) {
             for (Edge e : division) {
@@ -586,6 +580,13 @@ public class SwingGeneralGUI extends JFrame {
             }
         }
 
+        gc.setColor(Color.DARK_GRAY);
+        int nodeSize = graphView.getNodeSize();
+        for (int p = 0; p < graph.getNumNodes(); p++) {
+            Point v = graphView.getPosition(p);
+            //System.out.println(p + "@(" + v + ") " + nodeSize);
+            gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
+        }
     }
 
     private void drawMST(Graphics g, int width, int height) {
@@ -672,8 +673,8 @@ public class SwingGeneralGUI extends JFrame {
         }
         System.out.println("\t length = " + pathsSS.d[path.get(path.size() - 1)]);
     }
-    
-    private void error( String msg ) {
+
+    private void error(String msg) {
         JOptionPane.showMessageDialog(this, msg, "Something went wrong!", JOptionPane.QUESTION_MESSAGE);
     }
 

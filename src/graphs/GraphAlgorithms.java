@@ -642,10 +642,14 @@ public class GraphAlgorithms {
         }
     }
 
-    public static final int ITER_LIMIT = 16;
+    public static final int ITER_LIMIT = 32;
 
     public static List<List<Edge>> partition_Kernighan_Lin(Graph graph, int startNode) {
         Set<Integer> A = new HashSet<>(), B = new HashSet<>();
+        List<Set<Integer>>  neighbours = new ArrayList<>(graph.getNumNodes());
+        for (int i = 0; i < graph.getNumNodes(); i++) {
+            neighbours.add(graph.getNeighbours(i));
+        }
 
         // Inicjalny podział węzłów wg odległości od węzła startNode
         SingleSourceGraphPaths p0 = dijkstra(graph, startNode);
@@ -662,8 +666,8 @@ public class GraphAlgorithms {
         int nit = 0;
         while (improvement) {
             System.err.println("Kernighan-Lin iteration #" + nit + ":");
-            System.err.println("A: " + A);
-            System.err.println("B: " + B);
+            //System.err.println("A: " + A);
+            //System.err.println("B: " + B);
             improvement = false;
             List<Swap> swaps = new ArrayList<>();
 
@@ -675,11 +679,11 @@ public class GraphAlgorithms {
             Set<Integer> usedB = new HashSet<>();
 
             while (usedA.size() < A.size() && usedB.size() < B.size()) {
-                Swap bestSwap = findBestSwap(graph, A, B, D, usedA, usedB);
+                Swap bestSwap = findBestSwap(graph, A, B, D, usedA, usedB, neighbours);
                 if (bestSwap == null) {
                     break;
                 }
-                System.err.println("Best swap: " + bestSwap);
+                //System.err.println("Best swap: " + bestSwap);
                 swaps.add(bestSwap);
                 usedA.add(bestSwap.nodeA);
                 usedB.add(bestSwap.nodeB);
@@ -703,8 +707,8 @@ public class GraphAlgorithms {
 
             if (maxGain > 0) {
                 improvement = true;
-                System.out.println("Max Gain: " + maxGain);
-                System.out.println("Swaps: " + swaps);
+                //System.out.println("Max Gain: " + maxGain);
+                //System.out.println("Swaps: " + swaps);
                 for (int i = 0; i <= maxIndex; i++) {
                     A.remove(swaps.get(i).nodeA);
                     B.remove(swaps.get(i).nodeB);
@@ -717,7 +721,7 @@ public class GraphAlgorithms {
             }
         }
 
-        System.out.println("Final :" + A + B);
+        //System.out.println("Final :" + A + B);
 
         // Tworzenie dwóch grafów na podstawie podziału
         List<Edge> edgesA = new ArrayList<>(), edgesB = new ArrayList<>(), edgesCut = new ArrayList<>();
@@ -758,7 +762,7 @@ public class GraphAlgorithms {
         return D;
     }
 
-    private static Swap findBestSwap(Graph graph, Set<Integer> A, Set<Integer> B, Map<Integer, Double> D, Set<Integer> usedA, Set<Integer> usedB) {
+    private static Swap findBestSwap(Graph graph, Set<Integer> A, Set<Integer> B, Map<Integer, Double> D, Set<Integer> usedA, Set<Integer> usedB, List<Set<Integer>> neighbours) {
         Swap bestSwap = null;
         double maxGain = Double.NEGATIVE_INFINITY;
 
@@ -766,13 +770,13 @@ public class GraphAlgorithms {
             if (usedA.contains(a)) {
                 continue;
             }
-            for (Integer b : B) {
+            for (Integer b : neighbours.get(a)) {
                 if (usedB.contains(b)) {
                     continue;
                 }
 
                 double edgeWeight = 0;
-                for (Edge edge : graph) {
+                for (Edge edge : graph.getConnectionsList(b)) {
                     if ((edge.getNodeA() == a && edge.getNodeB() == b)
                             || (edge.getNodeB() == a && edge.getNodeA() == b)) {
                         edgeWeight = edge.getWeight();
@@ -788,6 +792,37 @@ public class GraphAlgorithms {
         }
         return bestSwap;
     }
+    
+    private static Swap findBestSwapSlowly(Graph graph, Set<Integer> A, Set<Integer> B, Map<Integer, Double> D, Set<Integer> usedA, Set<Integer> usedB) {
+        Swap bestSwap = null;
+        double maxGain = Double.NEGATIVE_INFINITY;
+
+        for (Integer a : A) {
+            if (usedA.contains(a)) {
+                continue;
+            }
+            for (Integer b : B) {
+                if (usedB.contains(b)) {
+                    continue;
+                }
+
+                double edgeWeight = 0;
+                for (Edge edge : graph.getConnectionsList(b)) {
+                    if ((edge.getNodeA() == a && edge.getNodeB() == b)
+                            || (edge.getNodeB() == a && edge.getNodeA() == b)) {
+                        edgeWeight = edge.getWeight();
+                        break;
+                    }
+                }
+                double gain = D.get(a) + D.get(b) - 2 * edgeWeight;
+                if (gain > maxGain) {
+                    maxGain = gain;
+                    bestSwap = new Swap(a, b, gain);
+                }
+            }
+        }
+        return bestSwap;
+    }    
 
     private static class Swap {
 

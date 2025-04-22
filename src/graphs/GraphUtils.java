@@ -644,11 +644,11 @@ public class GraphUtils {
 
     public static final int ITER_LIMIT = 16;
 
-    public static List<Edge> partition_Kernighan_Lin(Graph graph) {
+    public static List<Edge> partition_Kernighan_Lin(Graph graph, int startNode) {
         Set<Integer> A = new HashSet<>(), B = new HashSet<>();
 
-        // Inicjalny podział węzłów wg odległości od węzła 0
-        SingleSourceGraphPaths p0 = dijkstra(graph, 0);
+        // Inicjalny podział węzłów wg odległości od węzła startNode
+        SingleSourceGraphPaths p0 = dijkstra(graph, startNode);
         List<Integer> nodeList = new ArrayList<>();
         for (int i = 0; i < graph.getNumNodes(); i++) {
             nodeList.add(i);
@@ -661,7 +661,9 @@ public class GraphUtils {
         boolean improvement = true;
         int nit = 0;
         while (improvement) {
-            System.out.println(nit + ":" + A + B);
+            System.err.println(nit + ":");
+            System.err.println(A);
+            System.err.println(B);
             improvement = false;
             List<Swap> swaps = new ArrayList<>();
 

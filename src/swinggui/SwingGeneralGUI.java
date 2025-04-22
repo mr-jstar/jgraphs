@@ -391,7 +391,7 @@ public class SwingGeneralGUI extends JFrame {
                             } else if (selectedtAlgorithm.equals("Kernighan-Lin")) {
                                 System.out.println("Kernighan-Lin");
                                 long start = System.nanoTime();
-                                division = GraphUtils.partition_Kernighan_Lin(graph);
+                                division = GraphUtils.partition_Kernighan_Lin(graph,nodeNum);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
                                 pathsSS = null;

@@ -32,13 +32,21 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
 public class SwingGeneralGUI extends JFrame {
 
-    final static String[] algorithms = {"BFS", "DFS Recursive", "DFS Iterative", "Dijkstra", "Bellman-Ford", "Floyd-Warshall", "Kruskal", "Prim", "Prim_CLRS", "Kernighan-Lin"};
+    final static String[] algorithms = {
+        "BFS", "DFS Recursive", "DFS Iterative",
+        "Dijkstra", "Bellman-Ford", "Floyd-Warshall",
+        "Kruskal", "Prim", "Prim_CLRS",
+        "Kernighan-Lin"
+    };
+
+    final static int KERNIGHAN_LIN_ITER_LIMIT = 32;
 
     final private String nodeScaleViewLabelTxt = "Color scale for nodes (distance): ";
     final private String edgeScaleViewLabelTxt = "Color scale for edges (weights): ";
@@ -80,6 +88,7 @@ public class SwingGeneralGUI extends JFrame {
     private List<Thread> runningAlgorithms = new ArrayList<>();
 
     private List<Edge> division = null;
+    private final Set<Integer> halfA = new HashSet<>(), halfB = new HashSet<>();
 
     private String lastUsedDirectory = ".";
 
@@ -101,6 +110,7 @@ public class SwingGeneralGUI extends JFrame {
                 edgeColorMapLabel.setIcon(new ImageIcon(edgeCM.createColorScaleImage(300, 20, SwingConstants.HORIZONTAL)));
                 long finish = System.nanoTime();
                 System.out.println((finish - start) / 1000 + " microseconds");
+                closeRunningAlgorithms();
                 pathsSS = null;
                 pathsAll = null;
                 division = null;
@@ -150,6 +160,7 @@ public class SwingGeneralGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Delete graph");
+                closeRunningAlgorithms();
                 graph = null;
                 graphView = null;
                 pathsSS = null;
@@ -206,16 +217,17 @@ public class SwingGeneralGUI extends JFrame {
                             edgeCM.setMax(maxWght);
                             edgeColorMapLabel.setIcon(new ImageIcon(edgeCM.createColorScaleImage(300, 20, SwingConstants.HORIZONTAL)));
                             drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                            closeRunningAlgorithms();
                         } catch (Exception ex) {
                             error("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
                         }
                     } else {
                         System.out.println("Load graph");
                         try {
-                            Reader r = new FileReader(file);
-                            graph = GraphAlgorithms.readGridGraph(r);
-                            graphView = new GridGraphView((GridGraph) graph);
-                            r.close();
+                            try (Reader r = new FileReader(file)) {
+                                graph = GraphAlgorithms.readGridGraph(r);
+                                graphView = new GridGraphView((GridGraph) graph);
+                            }
                             gridSizeTextField.setText(((GridGraph) graph).getNumColumns() + " x " + ((GridGraph) graph).getNumRows());
                             minWght = graph.getMinEdgeWeight();
                             maxWght = graph.getMaxEdgeWeight();
@@ -470,14 +482,21 @@ public class SwingGeneralGUI extends JFrame {
 
                                     @Override
                                     public void run() {
+                                        canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                                         System.out.println("Kernighan-Lin");
                                         long start = System.nanoTime();
-                                        division = GraphAlgorithms.partition_Kernighan_Lin(graph, nodeNum).get(0);
-                                        long finish = System.nanoTime();
-                                        System.out.println((finish - start) / 1e6 + " miliseconds");
-                                        pathsSS = null;
-                                        pathsAll = null;
-                                        drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                                        List<List<Edge>> klResults = GraphAlgorithms.partition_Kernighan_Lin(graph, nodeNum, KERNIGHAN_LIN_ITER_LIMIT);
+                                        if (klResults != null) {
+                                            division = klResults.get(0);
+                                            GraphAlgorithms.edgeListToVertexSet(klResults.get(1), halfA);
+                                            GraphAlgorithms.edgeListToVertexSet(klResults.get(2), halfB);
+                                            long finish = System.nanoTime();
+                                            System.out.println((finish - start) / 1e6 + " miliseconds");
+                                            canvas.setCursor(Cursor.getDefaultCursor());
+                                            pathsSS = null;
+                                            pathsAll = null;
+                                            drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                                        }
                                     }
                                 };
                                 t.start();
@@ -588,6 +607,13 @@ public class SwingGeneralGUI extends JFrame {
         }
     }
 
+    private void closeRunningAlgorithms() {
+        for (Thread a : runningAlgorithms) {
+            a.interrupt();
+        }
+        canvas.setCursor(Cursor.getDefaultCursor());
+    }
+
     private void changeFontSize(float by, Container where) {
         for (Component component : where.getComponents()) {
             if (component == null) {
@@ -640,14 +666,27 @@ public class SwingGeneralGUI extends JFrame {
                 Point vB = graphView.getPosition(e.getNodeB());
                 gc.drawLine(vA.x, vA.y, vB.x, vB.y);
             }
-        }
-
-        gc.setColor(Color.DARK_GRAY);
-        int nodeSize = graphView.getNodeSize();
-        for (int p = 0; p < graph.getNumNodes(); p++) {
-            Point v = graphView.getPosition(p);
-            //System.out.println(p + "@(" + v + ") " + nodeSize);
-            gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
+            int nodeSize = graphView.getNodeSize();
+            gc.setColor(Color.RED);
+            for (Integer p : halfA) {
+                Point v = graphView.getPosition(p);
+                //System.out.println(p + "@(" + v + ") " + nodeSize);
+                gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
+            }
+            gc.setColor(Color.GREEN);
+            for (Integer p : halfB) {
+                Point v = graphView.getPosition(p);
+                //System.out.println(p + "@(" + v + ") " + nodeSize);
+                gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
+            }
+        } else {
+            gc.setColor(Color.DARK_GRAY);
+            int nodeSize = graphView.getNodeSize();
+            for (int p = 0; p < graph.getNumNodes(); p++) {
+                Point v = graphView.getPosition(p);
+                //System.out.println(p + "@(" + v + ") " + nodeSize);
+                gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
+            }
         }
     }
 

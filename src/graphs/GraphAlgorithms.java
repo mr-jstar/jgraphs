@@ -642,11 +642,9 @@ public class GraphAlgorithms {
         }
     }
 
-    public static final int ITER_LIMIT = 255;
-
-    public static List<List<Edge>> partition_Kernighan_Lin(Graph graph, int startNode) {
+    public static List<List<Edge>> partition_Kernighan_Lin(Graph graph, int startNode, int iter_limit) {
         Set<Integer> A = new HashSet<>(), B = new HashSet<>();
-        List<Set<Integer>>  neighbours = new ArrayList<>(graph.getNumNodes());
+        List<Set<Integer>> neighbours = new ArrayList<>(graph.getNumNodes());
         for (int i = 0; i < graph.getNumNodes(); i++) {
             neighbours.add(graph.getNeighbours(i));
         }
@@ -691,6 +689,10 @@ public class GraphAlgorithms {
                 // Aktualizacja D po każdej zamianie
                 D.put(bestSwap.nodeA, D.get(bestSwap.nodeA) - bestSwap.gain);
                 D.put(bestSwap.nodeB, D.get(bestSwap.nodeB) - bestSwap.gain);
+
+                if (Thread.currentThread().isInterrupted()) {
+                    return null;
+                }
             }
 
             // Znalezienie optymalnego momentu zatrzymania
@@ -716,13 +718,12 @@ public class GraphAlgorithms {
                     B.add(swaps.get(i).nodeA);
                 }
             }
-            if (nit++ > ITER_LIMIT) {
+            if (++nit > iter_limit) {
                 break;
             }
         }
 
         //System.out.println("Final :" + A + B);
-
         // Tworzenie dwóch grafów na podstawie podziału
         List<Edge> edgesA = new ArrayList<>(), edgesB = new ArrayList<>(), edgesCut = new ArrayList<>();
         for (Edge edge : graph) {
@@ -736,7 +737,9 @@ public class GraphAlgorithms {
         }
 
         List<List<Edge>> result = new ArrayList<>();
-        result.add( edgesCut ); result.add( edgesA ); result.add( edgesB );
+        result.add(edgesCut);
+        result.add(edgesA);
+        result.add(edgesB);
         return result;
     }
 
@@ -792,7 +795,7 @@ public class GraphAlgorithms {
         }
         return bestSwap;
     }
-    
+
     private static Swap findBestSwapSlowly(Graph graph, Set<Integer> A, Set<Integer> B, Map<Integer, Double> D, Set<Integer> usedA, Set<Integer> usedB) {
         Swap bestSwap = null;
         double maxGain = Double.NEGATIVE_INFINITY;
@@ -822,7 +825,7 @@ public class GraphAlgorithms {
             }
         }
         return bestSwap;
-    }    
+    }
 
     private static class Swap {
 
@@ -838,6 +841,14 @@ public class GraphAlgorithms {
         @Override
         public String toString() {
             return nodeA + "<->" + nodeB + " : " + gain;
+        }
+    }
+
+    public static void edgeListToVertexSet(List<Edge> edges, Set<Integer> vertices) {
+        vertices.clear();
+        for (Edge e : edges) {
+            vertices.add(e.getNodeA());
+            vertices.add(e.getNodeB());
         }
     }
 }

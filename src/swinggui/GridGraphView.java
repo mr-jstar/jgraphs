@@ -10,7 +10,7 @@ import java.awt.Point;
  */
 public class GridGraphView implements GraphView {
 
-    final static int MINNODESIZE = 1;
+    final static int MINNODESIZE = 2;
 
     private final GridGraph graph;
     private final int[][] rc;
@@ -46,9 +46,9 @@ public class GridGraphView implements GraphView {
         if (nodeSep < 1) {
             return;
         }
-        this.nodeSize = (int) (nodeSep / 5.0) / 2 * 2;
-        this.nodeSize = nodeSize < MINNODESIZE ? MINNODESIZE : nodeSize;
-        //System.out.println("Node size: " + nodeSize);
+        this.nodeSize = (int) (nodeSep / 5.0);
+        this.nodeSize = this.nodeSize < MINNODESIZE ? MINNODESIZE : this.nodeSize;
+        System.out.println("Node size: " + this.nodeSize);
         for (int n = 0; n < graph.getNumNodes(); n++) {
             rc[n][0] = n % rows;  // column
             rc[n][1] = n / rows;  // row

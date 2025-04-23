@@ -33,52 +33,52 @@ import java.util.Locale;
 import java.util.Set;
 
 public class SwingGeneralGUI extends JFrame {
-
+    
     final static String[] algorithms = {"BFS", "DFS Recursive", "DFS Iterative", "Dijkstra", "Bellman-Ford", "Floyd-Warshall", "Kruskal", "Prim", "Prim_CLRS", "Kernighan-Lin"};
-
+    
     final private String nodeScaleViewLabelTxt = "Color scale for nodes (distance): ";
     final private String edgeScaleViewLabelTxt = "Color scale for edges (weights): ";
-
+    
     final static int DEFAULTWIDTH = 2000;
     final static int DEFAULTHEIGHT = DEFAULTWIDTH - 200;
-
+    
     final static int BASICNODESIZE = 20;
-
+    
     private int leftSep = 10;
     private int topSep = 10;
     private double minWght = 0;
     private double maxWght = 20;
-
+    
     private JTextField gridSizeTextField, edgeWeightRangeTextField, edgesPerNodeTextField;
     final private JLabel nodeColorMapLabel, edgeColorMapLabel;
-
+    
     private Graph graph;
     private IMesh mesh;
-
+    
     private GraphView graphView;
     private JPanel canvas;
-
+    
     private final ColorMap edgeCM = new ColorMap(minWght, maxWght);
-
+    
     private double edgesPerNode = 4;
-
+    
     private ColorMap nodeCM;
     private JLabel nodeScaleViewLabel;
     private JLabel edgeScaleViewLabel;
-
+    
     private ButtonGroup algGroup;
     private JPanel algPanel;
-
+    
     private SingleSourceGraphPaths pathsSS = null;
     private AllToAllGraphPaths pathsAll = null;
     private Graph mst = null;
-
+    
     private List<Thread> runningAlgorithms = new ArrayList<>();
-
+    
     private List<Edge> division = null;
-
+    
     private String lastUsedDirectory = ".";
-
+    
     ActionListener generateGridGraph = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -107,43 +107,38 @@ public class SwingGeneralGUI extends JFrame {
                 error(ex.getClass() + ": " + ex.getMessage());
             }
         }
-
+        
     };
-
+    
     public SwingGeneralGUI() {
         // Set up the frame
         setTitle("Swing Graph GUI");
-        setSize(DEFAULTWIDTH, DEFAULTHEIGHT);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(DEFAULTWIDTH, DEFAULTHEIGHT);
         setLayout(new BorderLayout());
-
+        
         JLabel gridLabel = new JLabel("Grid size:");
         gridSizeTextField = new JTextField(10);
         gridSizeTextField.setText("10 x 10");
         gridSizeTextField.addActionListener(generateGridGraph);
-
+        
         JLabel edgeLabel = new JLabel("Edge weight range:");
         edgeWeightRangeTextField = new JTextField(10);
         edgeWeightRangeTextField.setText("0 : 20");
-
+        
         JLabel nodeLabel = new JLabel("Edges per node:");
         edgesPerNodeTextField = new JTextField(5);
         edgesPerNodeTextField.setText("4");
-
+        
         JButton generateButton = new JButton("Generate");
         generateButton.addActionListener(generateGridGraph);
-
+        
         JButton redrawButton = new JButton("Redraw");
         redrawButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Redraw graph");
-                drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
-                if (pathsSS != null) {
-                    colorNodes(canvas.getGraphics());
-                } else {
-                    nodeScaleViewLabel.setText(nodeScaleViewLabelTxt + " - none - ");
-                }
+                redrawContent(e);
             }
         });
         JButton deleteButton = new JButton("Delete");
@@ -239,9 +234,9 @@ public class SwingGeneralGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 System.exit(0);
             }
-
+            
         });
-
+        
         JPanel generatePanel = new JPanel();
         generatePanel.setBackground(Color.LIGHT_GRAY);
         generatePanel.add(gridLabel);
@@ -251,7 +246,7 @@ public class SwingGeneralGUI extends JFrame {
         generatePanel.add(nodeLabel);
         generatePanel.add(edgesPerNodeTextField);
         generatePanel.add(generateButton);
-
+        
         JPanel controlPanel = new JPanel();
         controlPanel.add(generatePanel);
         controlPanel.add(redrawButton);
@@ -272,7 +267,7 @@ public class SwingGeneralGUI extends JFrame {
         edgeColorMapLabel = new JLabel();
         scales.add(edgeColorMapLabel);
         changeFontSize(6f, scales);
-
+        
         algGroup = new ButtonGroup();
         JPanel abPanel = new JPanel();
         abPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0));
@@ -293,7 +288,7 @@ public class SwingGeneralGUI extends JFrame {
         topPanel.setLayout(new BorderLayout());
         topPanel.add(controlPanel, BorderLayout.NORTH);
         topPanel.add(scales, BorderLayout.SOUTH);
-
+        
         canvas = new JPanel();
         canvas.setSize(DEFAULTWIDTH, DEFAULTHEIGHT);
         canvas.addMouseListener(new MouseAdapter() {
@@ -302,16 +297,16 @@ public class SwingGeneralGUI extends JFrame {
                 if (graphView == null) {
                     return;
                 }
-
+                
                 int nodeNum = graphView.getNodeNum(e.getX(), e.getY());
-
+                
                 for (Thread t : runningAlgorithms) {
                     if (t.isAlive()) {
                         error("Something still running!");
                         return;
                     }
                 }
-
+                
                 System.out.println("(" + e.getX() + "," + e.getY() + ") -> " + nodeNum);
 
                 //String selectedtAlgorithm = algorithms.getSelectionModel().getSelectedItem();
@@ -393,7 +388,7 @@ public class SwingGeneralGUI extends JFrame {
                                     {
                                         setDaemon(true);
                                     }
-
+                                    
                                     @Override
                                     public void run() {
                                         System.out.println("MST by Prim");
@@ -420,7 +415,7 @@ public class SwingGeneralGUI extends JFrame {
                                     {
                                         setDaemon(true);
                                     }
-
+                                    
                                     @Override
                                     public void run() {
                                         System.out.println("MST by Prim");
@@ -447,7 +442,7 @@ public class SwingGeneralGUI extends JFrame {
                                     {
                                         setDaemon(true);
                                     }
-
+                                    
                                     @Override
                                     public void run() {
                                         System.out.println("Kernighan-Lin");
@@ -463,7 +458,7 @@ public class SwingGeneralGUI extends JFrame {
                                 t.start();
                                 runningAlgorithms.add(t);
                             }
-
+                            
                             if (pathsSS != null) {
                                 colorNodes(canvas.getGraphics());
                                 ArrayList<Integer> longestPath = decodePathTo(pathsSS.farthest);
@@ -503,11 +498,11 @@ public class SwingGeneralGUI extends JFrame {
             }
         });
         add(canvas, BorderLayout.CENTER);
-
+        
         add(topPanel, BorderLayout.NORTH);
-
+        
         add(algPanel, BorderLayout.SOUTH);
-
+        
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent ke) {
@@ -525,7 +520,17 @@ public class SwingGeneralGUI extends JFrame {
         // Display the frame
         setVisible(true);
     }
-
+    
+    private void redrawContent(Object e) {
+        System.err.println("Redrawing after " + e.getClass());
+        drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+        if (pathsSS != null) {
+            colorNodes(canvas.getGraphics());
+        } else {
+            nodeScaleViewLabel.setText(nodeScaleViewLabelTxt + " - none - ");
+        }
+    }
+    
     private void changeFontSize(float by, Container where) {
         for (Component component : where.getComponents()) {
             if (component == null) {
@@ -544,10 +549,10 @@ public class SwingGeneralGUI extends JFrame {
             }
         }
     }
-
+    
     private void drawGraph(Graphics g, int width, int height) {
         Graphics2D gc = (Graphics2D) g;
-
+        
         gc.setColor(Color.BLACK);
         gc.fillRect(0, 0, width, height);
         if (graph == null || graph.getNumNodes() < 1) {
@@ -558,7 +563,7 @@ public class SwingGeneralGUI extends JFrame {
         gc.setColor(Color.GRAY);
         gc.setStroke(new BasicStroke(2));
         graphView.recalculateNodeCoordinates(width, height, BASICNODESIZE, leftSep, topSep);
-
+        
         for (int n = 0; n < graph.getNumNodes(); n++) {
             Set<Edge> edges = graph.getConnectionsList(n);
             for (Edge e : edges) {
@@ -570,7 +575,7 @@ public class SwingGeneralGUI extends JFrame {
                 gc.drawLine(vA.x, vA.y, vB.x, vB.y);
             }
         }
-
+        
         if (division != null) {
             for (Edge e : division) {
                 gc.setColor(Color.BLACK);
@@ -579,7 +584,7 @@ public class SwingGeneralGUI extends JFrame {
                 gc.drawLine(vA.x, vA.y, vB.x, vB.y);
             }
         }
-
+        
         gc.setColor(Color.DARK_GRAY);
         int nodeSize = graphView.getNodeSize();
         for (int p = 0; p < graph.getNumNodes(); p++) {
@@ -588,7 +593,7 @@ public class SwingGeneralGUI extends JFrame {
             gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
         }
     }
-
+    
     private void drawMST(Graphics g, int width, int height) {
         Graphics2D gc = (Graphics2D) g;
         gc.setColor(Color.BLACK);
@@ -600,7 +605,7 @@ public class SwingGeneralGUI extends JFrame {
         gc.setStroke(new BasicStroke(2));
         gc.setStroke(new BasicStroke(2));
         graphView.recalculateNodeCoordinates(width, height, BASICNODESIZE, leftSep, topSep);
-
+        
         for (int n = 0; n < graph.getNumNodes(); n++) {
             Set<Edge> edges = mst.getConnectionsList(n);
             for (Edge e : edges) {
@@ -618,7 +623,7 @@ public class SwingGeneralGUI extends JFrame {
             gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
         }
     }
-
+    
     private void colorNodes(Graphics g) {
         Graphics2D gc = (Graphics2D) g;
         if (graph == null || graph.getNumNodes() < 1) {
@@ -635,7 +640,7 @@ public class SwingGeneralGUI extends JFrame {
             gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
         }
     }
-
+    
     private void drawPath(Graphics g, ArrayList<Integer> path) {
         Graphics2D gc = (Graphics2D) g;
         if (graph == null || graph.getNumNodes() < 1) {
@@ -651,7 +656,7 @@ public class SwingGeneralGUI extends JFrame {
             vA = vB;
         }
     }
-
+    
     private ArrayList<Integer> decodePathTo(int farthest) {
         ArrayList<Integer> path = new ArrayList<>();
         //restore from last to source
@@ -666,18 +671,18 @@ public class SwingGeneralGUI extends JFrame {
         }
         return path;
     }
-
+    
     private void printPath(ArrayList<Integer> path) {
         for (int i = 0; i < path.size(); i++) {
             System.out.print(" " + path.get(i));
         }
         System.out.println("\t length = " + pathsSS.d[path.get(path.size() - 1)]);
     }
-
+    
     private void error(String msg) {
         JOptionPane.showMessageDialog(this, msg, "Something went wrong!", JOptionPane.QUESTION_MESSAGE);
     }
-
+    
     public static void main(String[] args) {
         // Run the application
         SwingUtilities.invokeLater(() -> new SwingGeneralGUI());

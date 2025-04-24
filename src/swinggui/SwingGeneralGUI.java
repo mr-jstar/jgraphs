@@ -359,38 +359,64 @@ public class SwingGeneralGUI extends JFrame {
                 try {
                     if (graph != null && nodeNum >= 0) {
                         System.out.println("Node # " + nodeNum);
-                        clearWorkspace();
                         if (e.getButton() == MouseEvent.BUTTON1) {
+                            clearWorkspace();
                             if (selectedtAlgorithm.equals("Dijkstra")) {
                                 System.out.println("Dijkstra");
                                 long start = System.nanoTime();
                                 pathsSS = GraphAlgorithms.dijkstra(graph, nodeNum);
                                 long finish = System.nanoTime();
-                                System.out.println((finish - start) / 1e6 + " miliseconds");
+                                System.out.println("Dijkstra: " + (finish - start) / 1e6 + " miliseconds");
                                 mst = null;
                                 pathsAll = null;
                             } else if (selectedtAlgorithm.equals("Bellman-Ford")) {
-                                System.out.println("Bellman-Ford");
-                                long start = System.nanoTime();
-                                pathsSS = GraphAlgorithms.bellmanFord(graph, nodeNum);
-                                long finish = System.nanoTime();
-                                System.out.println((finish - start) / 1e6 + " miliseconds");
-                                mst = null;
-                                pathsAll = null;
+                                Thread t = new Thread() {
+                                    {
+                                        setDaemon(true);
+                                    }
+
+                                    @Override
+                                    public void run() {
+                                        canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                                        System.out.println("Bellman-Ford");
+                                        long start = System.nanoTime();
+                                        pathsSS = GraphAlgorithms.bellmanFord(graph, nodeNum);
+                                        long finish = System.nanoTime();
+                                        System.out.println("Bellman-Ford: " + (finish - start) / 1e6 + " miliseconds");
+                                        mst = null;
+                                        pathsAll = null;
+                                        drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                                    }
+                                };
+                                t.start();
+                                runningAlgorithms.add(t);
                             } else if (selectedtAlgorithm.equals("Floyd-Warshall")) {
-                                System.out.println("Floyd-Warshall");
-                                long start = System.nanoTime();
-                                pathsAll = GraphAlgorithms.floydWarshall(graph);
-                                long finish = System.nanoTime();
-                                System.out.println((finish - start) / 1e6 + " miliseconds");
-                                pathsSS = pathsAll.getSSPaths(nodeNum);
-                                mst = null;
+                                Thread t = new Thread() {
+                                    {
+                                        setDaemon(true);
+                                    }
+
+                                    @Override
+                                    public void run() {
+                                        canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                                        System.out.println("Floyd-Warshall");
+                                        long start = System.nanoTime();
+                                        pathsAll = GraphAlgorithms.floydWarshall(graph);
+                                        long finish = System.nanoTime();
+                                        System.out.println("Floyd-Warshall: " + (finish - start) / 1e6 + " miliseconds");
+                                        pathsSS = pathsAll.getSSPaths(nodeNum);
+                                        mst = null;
+                                        drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                                    }
+                                };
+                                t.start();
+                                runningAlgorithms.add(t);
                             } else if (selectedtAlgorithm.equals("BFS")) {
                                 System.out.println("BFS");
                                 long start = System.nanoTime();
                                 pathsSS = GraphAlgorithms.bfs(graph, nodeNum);
                                 long finish = System.nanoTime();
-                                System.out.println((finish - start) / 1e6 + " miliseconds");
+                                System.out.println("BFS:" + (finish - start) / 1e6 + " miliseconds");
                                 mst = null;
                                 pathsAll = null;
                             } else if (selectedtAlgorithm.equals("DFS Recursive")) {
@@ -398,7 +424,7 @@ public class SwingGeneralGUI extends JFrame {
                                 long start = System.nanoTime();
                                 pathsSS = GraphAlgorithms.dfs(graph);
                                 long finish = System.nanoTime();
-                                System.out.println((finish - start) / 1e6 + " miliseconds");
+                                System.out.println("DFS Recursive: " + (finish - start) / 1e6 + " miliseconds");
                                 mst = null;
                                 pathsAll = null;
                             } else if (selectedtAlgorithm.equals("DFS Iterative")) {
@@ -406,7 +432,7 @@ public class SwingGeneralGUI extends JFrame {
                                 long start = System.nanoTime();
                                 pathsSS = GraphAlgorithms.dfs_iterative(graph);
                                 long finish = System.nanoTime();
-                                System.out.println((finish - start) / 1e6 + " miliseconds");
+                                System.out.println("DFS Iterative: " + (finish - start) / 1e6 + " miliseconds");
                                 mst = null;
                                 pathsAll = null;
                             } else if (selectedtAlgorithm.equals("Kruskal")) {
@@ -429,6 +455,7 @@ public class SwingGeneralGUI extends JFrame {
 
                                     @Override
                                     public void run() {
+                                        canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                                         System.out.println("MST by Prim");
                                         long start = System.nanoTime();
                                         mst = GraphAlgorithms.prim(graph);
@@ -444,6 +471,7 @@ public class SwingGeneralGUI extends JFrame {
                                         }
                                         pathsSS = null;
                                         pathsAll = null;
+                                        drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
                                     }
                                 };
                                 t.start();
@@ -456,6 +484,7 @@ public class SwingGeneralGUI extends JFrame {
 
                                     @Override
                                     public void run() {
+                                        canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                                         System.out.println("MST by Prim");
                                         long start = System.nanoTime();
                                         mst = GraphAlgorithms.classical_prim(graph);
@@ -492,7 +521,7 @@ public class SwingGeneralGUI extends JFrame {
                                             GraphAlgorithms.edgeListToVertexSet(klResults.get(1), halfA);
                                             GraphAlgorithms.edgeListToVertexSet(klResults.get(2), halfB);
                                             long finish = System.nanoTime();
-                                            System.out.println((finish - start) / 1e6 + " miliseconds");
+                                            System.out.println("Kernighan-Lin:" + (finish - start) / 1e6 + " miliseconds");
                                             canvas.setCursor(Cursor.getDefaultCursor());
                                             pathsSS = null;
                                             pathsAll = null;
@@ -591,6 +620,39 @@ public class SwingGeneralGUI extends JFrame {
             public void windowDeactivated(WindowEvent e) {
             }
         });
+
+        (new Thread() {
+            {
+                setDaemon(true);
+            }
+
+            @Override
+            public void run() {
+                boolean alive = false;
+                System.err.println("Watching threads...");
+                while (true) {
+                    try {
+                        sleep(100);
+                    } catch (InterruptedException ex) {
+
+                    }
+                    if( runningAlgorithms.size() > 0 )
+                        System.err.println(runningAlgorithms.size()+ " running");
+                    for (Thread t : runningAlgorithms) {
+                        if (t.isAlive()) {
+                            alive = true;
+                            System.err.println(t.getName() + " is alive");
+                        } else {
+                            runningAlgorithms.remove(t);
+                            break;
+                        }
+                    }
+                    if (!alive) {
+                        canvas.setCursor(Cursor.getDefaultCursor());
+                    }
+                }
+            }
+        }).start();
         setFocusable(true);
         requestFocusInWindow();
 

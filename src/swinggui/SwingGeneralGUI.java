@@ -87,7 +87,7 @@ public class SwingGeneralGUI extends JFrame {
 
     private List<Thread> runningAlgorithms = new ArrayList<>();
 
-    private List<Edge> division = null;
+    private List<Edge> division = new ArrayList<>();
     private final Set<Integer> halfA = new HashSet<>(), halfB = new HashSet<>();
 
     private String lastUsedDirectory = ".";
@@ -110,10 +110,7 @@ public class SwingGeneralGUI extends JFrame {
                 edgeColorMapLabel.setIcon(new ImageIcon(edgeCM.createColorScaleImage(300, 20, SwingConstants.HORIZONTAL)));
                 long finish = System.nanoTime();
                 System.out.println((finish - start) / 1000 + " microseconds");
-                closeRunningAlgorithms();
-                pathsSS = null;
-                pathsAll = null;
-                division = null;
+                clearWorkspace();
                 nodeScaleViewLabel.setText(nodeScaleViewLabelTxt + " - none - ");
                 System.out.println("Draw graph " + ((GridGraph) graph).getNumColumns() + "x" + ((GridGraph) graph).getNumRows());
                 drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
@@ -160,12 +157,7 @@ public class SwingGeneralGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Delete graph");
-                closeRunningAlgorithms();
-                graph = null;
-                graphView = null;
-                pathsSS = null;
-                pathsAll = null;
-                division = null;
+                clearWorkspace();
                 nodeScaleViewLabel.setText(nodeScaleViewLabelTxt + " - none - ");
                 edgeColorMapLabel.setIcon(null);
                 nodeColorMapLabel.setIcon(null);
@@ -202,7 +194,7 @@ public class SwingGeneralGUI extends JFrame {
                     File file = fileChooser.getSelectedFile();
                     lastUsedDirectory = file.getParent();
                     String name = file.getName();
-                    division = null;
+                    clearWorkspace();
                     if (name.endsWith(".poly") || name.endsWith(".node") || name.endsWith(".ele")) {
                         System.out.println("Load mesh");
                         try {
@@ -217,12 +209,13 @@ public class SwingGeneralGUI extends JFrame {
                             edgeCM.setMax(maxWght);
                             edgeColorMapLabel.setIcon(new ImageIcon(edgeCM.createColorScaleImage(300, 20, SwingConstants.HORIZONTAL)));
                             drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
-                            closeRunningAlgorithms();
+                            stopRunningAlgorithms();
                         } catch (Exception ex) {
                             error("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
                         }
                     } else {
                         System.out.println("Load graph");
+                        clearWorkspace();
                         try {
                             try (Reader r = new FileReader(file)) {
                                 graph = GraphAlgorithms.readGridGraph(r);
@@ -252,6 +245,7 @@ public class SwingGeneralGUI extends JFrame {
             }
 
         });
+        exitButton.setToolTipText("Will exit without saving anything!");
 
         JPanel generatePanel = new JPanel();
         generatePanel.setBackground(Color.LIGHT_GRAY);
@@ -285,6 +279,7 @@ public class SwingGeneralGUI extends JFrame {
         changeFontSize(6f, scales);
 
         algGroup = new ButtonGroup();
+        String aToolTip = " Click the node you want to start with.";
         JPanel abPanel = new JPanel();
         abPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0));
         for (String s : algorithms) {
@@ -292,14 +287,20 @@ public class SwingGeneralGUI extends JFrame {
             aB.setActionCommand(s);
             algGroup.add(aB);
             aB.setSelected(true);
+            aB.setToolTipText(aToolTip);
             abPanel.add(aB);
         }
+        abPanel.setToolTipText(aToolTip);
         algPanel = new JPanel();
         algPanel.setBackground(Color.LIGHT_GRAY);
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.addActionListener((e) -> clearWorkspace());
+        algPanel.add(cancelButton);
         algPanel.add(new JLabel("Algorithm: "));
         algPanel.add(abPanel);
-        algPanel.add(new JLabel(" Click the node you want to start with."));
+        algPanel.add(new JLabel(aToolTip));
         changeFontSize(6f, algPanel);
+
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BorderLayout());
         topPanel.add(controlPanel, BorderLayout.NORTH);
@@ -358,7 +359,7 @@ public class SwingGeneralGUI extends JFrame {
                 try {
                     if (graph != null && nodeNum >= 0) {
                         System.out.println("Node # " + nodeNum);
-                        division = null;
+                        clearWorkspace();
                         if (e.getButton() == MouseEvent.BUTTON1) {
                             if (selectedtAlgorithm.equals("Dijkstra")) {
                                 System.out.println("Dijkstra");
@@ -607,11 +608,28 @@ public class SwingGeneralGUI extends JFrame {
         }
     }
 
-    private void closeRunningAlgorithms() {
-        for (Thread a : runningAlgorithms) {
-            a.interrupt();
+    private void clearWorkspace() {
+        stopRunningAlgorithms();
+        pathsSS = null;
+        pathsAll = null;
+        division.clear();
+        halfA.clear();
+        halfB.clear();
+        drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+    }
+
+    private void stopRunningAlgorithms() {
+        try {
+            for (Thread a : runningAlgorithms) {
+                a.interrupt();
+            }
+            for (Thread a : runningAlgorithms) {
+                a.join();
+            }
+            canvas.setCursor(Cursor.getDefaultCursor());
+        } catch (InterruptedException ex) {
+            System.err.println(getClass() + ": interrupted while cleaning!?!");
         }
-        canvas.setCursor(Cursor.getDefaultCursor());
     }
 
     private void changeFontSize(float by, Container where) {
@@ -659,7 +677,16 @@ public class SwingGeneralGUI extends JFrame {
             }
         }
 
-        if (division != null) {
+        if (division.isEmpty()) {
+            gc.setColor(Color.DARK_GRAY);
+            int nodeSize = graphView.getNodeSize();
+            for (int p = 0; p < graph.getNumNodes(); p++) {
+                Point v = graphView.getPosition(p);
+                //System.out.println(p + "@(" + v + ") " + nodeSize);
+                gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
+            }
+
+        } else {
             for (Edge e : division) {
                 gc.setColor(Color.BLACK);
                 Point vA = graphView.getPosition(e.getNodeA());
@@ -675,14 +702,6 @@ public class SwingGeneralGUI extends JFrame {
             }
             gc.setColor(Color.GREEN);
             for (Integer p : halfB) {
-                Point v = graphView.getPosition(p);
-                //System.out.println(p + "@(" + v + ") " + nodeSize);
-                gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
-            }
-        } else {
-            gc.setColor(Color.DARK_GRAY);
-            int nodeSize = graphView.getNodeSize();
-            for (int p = 0; p < graph.getNumNodes(); p++) {
                 Point v = graphView.getPosition(p);
                 //System.out.println(p + "@(" + v + ") " + nodeSize);
                 gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);

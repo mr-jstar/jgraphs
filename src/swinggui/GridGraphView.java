@@ -10,7 +10,7 @@ import java.awt.Point;
  */
 public class GridGraphView implements GraphView {
 
-    final static int MINNODESIZE = 2;
+    final static int MINNODESIZE = 10;
 
     private final GridGraph graph;
     private final int[][] rc;

@@ -10,6 +10,9 @@ import java.awt.Point;
  * @author jstar
  */
 public class MeshGraphView implements GraphView {
+    
+    private static final int MIN_NODE_SIZE = 8;
+    private static final int MAX_NODE_SIZE = 16;
 
     private final IMesh mesh;
     private final Graph graph;
@@ -30,12 +33,12 @@ public class MeshGraphView implements GraphView {
     @Override
     public void recalculateNodeCoordinates(int width, int height, int nodeSize, int leftSep, int topSep) {
         this.nodeSize = (int) (height / mesh.getNoVertices());
-        this.nodeSize = this.nodeSize > 16 ? 16 : this.nodeSize;
-        this.nodeSize = this.nodeSize < 8 ? 8 : this.nodeSize;
+        this.nodeSize = this.nodeSize > MAX_NODE_SIZE ? MAX_NODE_SIZE : this.nodeSize;
+        this.nodeSize = this.nodeSize < MIN_NODE_SIZE ? MIN_NODE_SIZE : this.nodeSize;
         leftSep = leftSep < 2 * nodeSize ? 2 * nodeSize : leftSep;
         topSep = leftSep;
-        double xmin = Double.MAX_VALUE, xmax = -Double.MAX_VALUE;
-        double ymin = Double.MAX_VALUE, ymax = -Double.MAX_VALUE;
+        double xmin = Double.POSITIVE_INFINITY, xmax = Double.NEGATIVE_INFINITY;
+        double ymin = Double.POSITIVE_INFINITY, ymax = Double.NEGATIVE_INFINITY;
         for (int v = 0; v < mesh.getNoVertices(); v++) {
             double[] xy = mesh.getVertex(v).getX();
             if (xy[0] < xmin) {
@@ -75,7 +78,7 @@ public class MeshGraphView implements GraphView {
     @Override
     public int getNodeNum(int x, int y) {
         int i = -1;
-        double d2 = Double.MAX_VALUE;
+        double d2 = Double.POSITIVE_INFINITY;
         for (int v = 0; v < mesh.getNoVertices(); v++) {
             double cd2 = (x - rc[v][0]) * (x - rc[v][0]) + (y - rc[v][1]) * (y - rc[v][1]);
             if (cd2 < d2) {

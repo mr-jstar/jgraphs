@@ -651,6 +651,11 @@ public class GraphAlgorithms {
 
         // Inicjalny podział węzłów wg odległości od węzła startNode
         SingleSourceGraphPaths p0 = dijkstra(graph, startNode);
+        if( p0 == null ) {
+            System.err.println( "Can't find shortest paths from node #" + startNode + " of " + graph.getNumNodes());
+            Thread.currentThread().interrupt();
+            return null;
+        }
         List<Integer> nodeList = new ArrayList<>();
         for (int i = 0; i < graph.getNumNodes(); i++) {
             nodeList.add(i);
@@ -753,11 +758,13 @@ public class GraphAlgorithms {
         }
 
         for (Edge edge : graph) {
-            if (A.contains(edge.getNodeA()) && B.contains(edge.getNodeB())
+            if (A.contains(edge.getNodeA()) && B.contains(edge.getNodeB())   
                     || A.contains(edge.getNodeB()) && B.contains(edge.getNodeA())) {
+                // koszt zewnętrzny
                 D.put(edge.getNodeA(), D.get(edge.getNodeA()) + edge.getWeight());
                 D.put(edge.getNodeB(), D.get(edge.getNodeB()) + edge.getWeight());
             } else {
+                // koszt wewnętrzny
                 D.put(edge.getNodeA(), D.get(edge.getNodeA()) - edge.getWeight());
                 D.put(edge.getNodeB(), D.get(edge.getNodeB()) - edge.getWeight());
             }

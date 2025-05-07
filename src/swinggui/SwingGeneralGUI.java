@@ -53,6 +53,10 @@ public class SwingGeneralGUI extends JFrame {
 
     final static int DEFAULTWIDTH = 2000;
     final static int DEFAULTHEIGHT = DEFAULTWIDTH - 200;
+    
+    private static final int[] sizes = {12, 18, 24};
+    private static final Font[] fonts = FontFactory.makeFonts("SansSerif", Font.PLAIN, sizes);
+    private static Font currentFont = fonts[fonts.length / 2];
 
     final static int BASICNODESIZE = 20;
 
@@ -126,6 +130,28 @@ public class SwingGeneralGUI extends JFrame {
         setTitle("Swing Graph GUI");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(DEFAULTWIDTH, DEFAULTHEIGHT);
+        
+        JMenu guiOpts = new JMenu("GUI options");
+        ButtonGroup fgroup = new ButtonGroup();
+        guiOpts.add(new JMenuItem("Font size"));
+        for (Font f : fonts) {
+            JRadioButtonMenuItem fontOpt = new JRadioButtonMenuItem("\t\t\t" + String.valueOf(f.getSize()));
+            final Font cf = f;
+            fontOpt.addActionListener(e -> {
+                currentFont = cf;
+                setFontRecursively(this, currentFont);
+                UIManager.put("OptionPane.messageFont", currentFont);
+                UIManager.put("OptionPane.buttonFont", currentFont);
+                UIManager.put("OptionPane.messageFont", currentFont);
+            });
+            fontOpt.setSelected(f == currentFont);
+            fgroup.add(fontOpt);
+            guiOpts.add(fontOpt);
+        }
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(guiOpts);
+        setJMenuBar(menuBar);
+        
         setLayout(new BorderLayout());
 
         JLabel gridLabel = new JLabel("Grid size:");
@@ -636,8 +662,9 @@ public class SwingGeneralGUI extends JFrame {
                     } catch (InterruptedException ex) {
 
                     }
-                    if( runningAlgorithms.size() > 0 )
-                        System.err.println(runningAlgorithms.size()+ " running");
+                    if (runningAlgorithms.size() > 0) {
+                        System.err.println(runningAlgorithms.size() + " running");
+                    }
                     for (Thread t : runningAlgorithms) {
                         if (t.isAlive()) {
                             alive = true;
@@ -658,6 +685,24 @@ public class SwingGeneralGUI extends JFrame {
 
         // Display the frame
         setVisible(true);
+    }
+
+    private static void setFontRecursively(Component comp, Font font) {
+        if (comp == null) {
+            return;
+        }
+        comp.setFont(font);
+        if (comp instanceof Container container) {
+            for (Component child : container.getComponents()) {
+                setFontRecursively(child, font);
+            }
+        }
+        // Needs specific navigation, since JMenu does not show menu components as Components
+        if (comp instanceof JMenu menu) {
+            for (int i = 0; i < menu.getItemCount(); i++) {
+                setFontRecursively(menu.getItem(i), font);
+            }
+        }
     }
 
     private void redrawContent(Object e) {

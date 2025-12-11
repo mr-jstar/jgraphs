@@ -14,5 +14,7 @@ public interface EdgeInterface extends Comparable<EdgeInterface> {
     public int getNodeB();
 
     public double getWeight();
+    
+    public String getName();
 
 }

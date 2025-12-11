@@ -35,6 +35,13 @@ public interface Graph extends Iterable<Edge> {
         return neighbours;
     }
     
+    default public Edge getEdge( int v1, int v2 ) {
+        Set<Edge> e1 = getConnectionsList(v1);
+        e1.retainAll(getConnectionsList(v2));
+        Iterator<Edge> it = e1.iterator();
+        return it.hasNext() ? it.next() : null;
+    }
+    
     @Override
     default public Iterator<Edge> iterator() {
         return getAllEdges().iterator();

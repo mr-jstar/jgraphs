@@ -12,6 +12,7 @@ import graphs.AllToAllGraphPaths;
 import graphs.Edge;
 import graphs.Graph;
 import graphs.GraphAlgorithms;
+import graphs.GraphIO;
 import graphs.GridGraph;
 import graphs.SingleSourceGraphPaths;
 import javax.swing.*;
@@ -53,7 +54,7 @@ public class SwingGeneralGUI extends JFrame {
 
     final static int DEFAULTWIDTH = 2000;
     final static int DEFAULTHEIGHT = DEFAULTWIDTH - 200;
-    
+
     private static final int[] sizes = {12, 18, 24};
     private static final Font[] fonts = FontFactory.makeFonts("SansSerif", Font.PLAIN, sizes);
     private static Font currentFont = fonts[fonts.length / 2];
@@ -131,6 +132,7 @@ public class SwingGeneralGUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(DEFAULTWIDTH, DEFAULTHEIGHT);
         
+        /*
         JMenu guiOpts = new JMenu("GUI options");
         ButtonGroup fgroup = new ButtonGroup();
         guiOpts.add(new JMenuItem("Font size"));
@@ -151,6 +153,8 @@ public class SwingGeneralGUI extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(guiOpts);
         setJMenuBar(menuBar);
+        */
+
         setLayout(new BorderLayout());
 
         JLabel gridLabel = new JLabel("Grid size:");
@@ -201,7 +205,7 @@ public class SwingGeneralGUI extends JFrame {
                         lastUsedDirectory = file.getParent();
                         System.out.println("Save graph");
                         try {
-                            GraphAlgorithms.saveGridGraph(gridGraph, new PrintWriter(file));
+                            GraphIO.saveGridGraph(gridGraph, new PrintWriter(file));
                         } catch (IOException e) {
                             error("GRAPH NOT SAVED: " + e.getLocalizedMessage());
                         }
@@ -220,6 +224,7 @@ public class SwingGeneralGUI extends JFrame {
                     lastUsedDirectory = file.getParent();
                     String name = file.getName();
                     clearWorkspace();
+                    // check if this is a triangle mesh
                     if (name.endsWith(".poly") || name.endsWith(".node") || name.endsWith(".ele")) {
                         System.out.println("Load mesh");
                         try {
@@ -239,11 +244,12 @@ public class SwingGeneralGUI extends JFrame {
                             error("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
                         }
                     } else {
-                        System.out.println("Load graph");
+                        // not a mesh - try possible graph formats
+                        System.out.println("Try to load a grid graph");
                         clearWorkspace();
                         try {
                             try (Reader r = new FileReader(file)) {
-                                graph = GraphAlgorithms.readGridGraph(r);
+                                graph = GraphIO.readGridGraph(r);
                                 graphView = new GridGraphView((GridGraph) graph);
                             }
                             gridSizeTextField.setText(((GridGraph) graph).getNumColumns() + " x " + ((GridGraph) graph).getNumRows());
@@ -255,8 +261,50 @@ public class SwingGeneralGUI extends JFrame {
                             edgeCM.setMax(maxWght);
                             edgeColorMapLabel.setIcon(new ImageIcon(edgeCM.createColorScaleImage(300, 20, SwingConstants.HORIZONTAL)));
                             drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                            return;
+                        } catch (IOException ex) {
+                            //error("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
+                        }
+                        // if here - failed to read GridGraph
+                        System.out.println("Try to load adjacency list");
+                        try {
+                            try (Reader r = new FileReader(file)) {
+                                graph = GraphIO.readAdjacencyList(r);
+                                graphView = new AnyGraphView((GridGraph) graph);
+                            }
+                            gridSizeTextField.setText("not a grid");
+                            minWght = graph.getMinEdgeWeight();
+                            maxWght = graph.getMaxEdgeWeight();
+                            edgeWeightRangeTextField.setText(String.format("%.3g", minWght) + " : " + String.format("%.3g", maxWght));
+                            edgeScaleViewLabel.setText(edgeScaleViewLabelTxt + String.format("%.3g", minWght) + "--" + String.format("%.3g", maxWght));
+                            edgeCM.setMin(minWght);
+                            edgeCM.setMax(maxWght);
+                            edgeColorMapLabel.setIcon(new ImageIcon(edgeCM.createColorScaleImage(300, 20, SwingConstants.HORIZONTAL)));
+                            drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                            return;
+                        } catch (IOException ex) {
+                            //error("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
+                        }
+                        // if here - failed to read GridGraph and failed to load adjacency list
+                        System.out.println("Try to load edge list");
+                        try {
+                            try (Reader r = new FileReader(file)) {
+                                graph = GraphIO.readEdgeList(r);
+                                graphView = new AnyGraphView(graph);
+                            }
+                            gridSizeTextField.setText("not a grid");
+                            minWght = graph.getMinEdgeWeight();
+                            maxWght = graph.getMaxEdgeWeight();
+                            edgeWeightRangeTextField.setText(String.format("%.3g", minWght) + " : " + String.format("%.3g", maxWght));
+                            edgeScaleViewLabel.setText(edgeScaleViewLabelTxt + String.format("%.3g", minWght) + "--" + String.format("%.3g", maxWght));
+                            edgeCM.setMin(minWght);
+                            edgeCM.setMax(maxWght);
+                            edgeColorMapLabel.setIcon(new ImageIcon(edgeCM.createColorScaleImage(300, 20, SwingConstants.HORIZONTAL)));
+                            drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                            return;
                         } catch (IOException ex) {
                             error("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
+                            System.out.println("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
                         }
                     }
                 }
@@ -307,6 +355,9 @@ public class SwingGeneralGUI extends JFrame {
         String aToolTip = " Click the node you want to start with.";
         JPanel abPanel = new JPanel();
         abPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        int ac = 0;
+        JMenu aM = new JMenu("Algorithms");
+        aM.setFont(currentFont);
         for (String s : algorithms) {
             JRadioButton aB = new JRadioButton(s);
             aB.setActionCommand(s);
@@ -314,6 +365,13 @@ public class SwingGeneralGUI extends JFrame {
             aB.setSelected(true);
             aB.setToolTipText(aToolTip);
             abPanel.add(aB);
+            JMenuItem ami = new JMenuItem(s);
+            ami.setFont(currentFont);
+            ami.addActionListener(e -> {
+                aB.setSelected(true);
+                redrawContent(e);
+            });
+            aM.add(ami);
         }
         abPanel.setToolTipText(aToolTip);
         algPanel = new JPanel();
@@ -330,6 +388,37 @@ public class SwingGeneralGUI extends JFrame {
         topPanel.setLayout(new BorderLayout());
         topPanel.add(controlPanel, BorderLayout.NORTH);
         topPanel.add(scales, BorderLayout.SOUTH);
+
+        JMenuBar menuBar = new JMenuBar();
+        
+        JButton[] btns = {generateButton, redrawButton, deleteButton, saveButton, loadButton, exitButton};
+        
+        addToMenuBar(menuBar,"Graph", btns, currentFont);
+
+        menuBar.add(aM);
+
+        JMenu guiOpts = new JMenu("GUI options");
+        guiOpts.setFont(currentFont);
+        ButtonGroup fgroup = new ButtonGroup();
+        guiOpts.add(new JMenuItem("Font size"));
+        for (Font f : fonts) {
+            JRadioButtonMenuItem fontOpt = new JRadioButtonMenuItem("\t\t\t" + String.valueOf(f.getSize()));
+            final Font cf = f;
+            fontOpt.addActionListener(e -> {
+                currentFont = cf;
+                setFontRecursively(this, currentFont);
+                UIManager.put("OptionPane.messageFont", currentFont);
+                UIManager.put("OptionPane.buttonFont", currentFont);
+                UIManager.put("OptionPane.messageFont", currentFont);
+            });
+            fontOpt.setSelected(f == currentFont);
+            fontOpt.setFont(currentFont);
+            fgroup.add(fontOpt);
+            guiOpts.add(fontOpt);
+        }
+
+        menuBar.add(guiOpts);
+        setJMenuBar(menuBar);
 
         canvas = new JPanel();
         canvas.setSize(DEFAULTWIDTH, DEFAULTHEIGHT);
@@ -467,7 +556,7 @@ public class SwingGeneralGUI extends JFrame {
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1e6 + " miliseconds");
                                 if (graph instanceof GridGraph) {
-                                    GraphAlgorithms.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
+                                    GraphIO.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
                                 }
                                 System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
                                 pathsSS = null;
@@ -488,7 +577,7 @@ public class SwingGeneralGUI extends JFrame {
                                         System.out.println("MST generated in " + (finish - start) / 1e6 + " miliseconds");
                                         if (graph instanceof GridGraph) {
                                             try {
-                                                GraphAlgorithms.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
+                                                GraphIO.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
                                                 System.out.println("MST saved as GridGraph to file \"LastMST\"");
                                             } catch (IOException ex) {
                                                 error("MST not saved: " + ex.getLocalizedMessage());
@@ -517,7 +606,7 @@ public class SwingGeneralGUI extends JFrame {
                                         System.out.println("MST generated in " + (finish - start) / 1e6 + " miliseconds");
                                         if (graph instanceof GridGraph) {
                                             try {
-                                                GraphAlgorithms.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
+                                                GraphIO.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
                                                 System.out.println("MST saved as GridGraph to file \"LastMST\"");
                                             } catch (IOException ex) {
                                                 error("MST not saved: " + ex.getLocalizedMessage());
@@ -684,6 +773,25 @@ public class SwingGeneralGUI extends JFrame {
 
         // Display the frame
         setVisible(true);
+    }
+
+    // Menu bar out of defined buttons
+    private JMenuBar addToMenuBar(JMenuBar menuBar, String name, AbstractButton[] btns, Font font) {
+        JMenu menu = new JMenu(name);
+        menu.setFont(font);
+
+        for (AbstractButton b : btns) {
+            JMenuItem newItem = new JMenuItem(b.getText());
+            newItem.setFont(font);
+            for (ActionListener al : b.getActionListeners()) {
+                newItem.addActionListener(al);
+            }
+            menu.add(newItem);
+        }
+
+        menuBar.add(menu);
+
+        return menuBar;
     }
 
     private static void setFontRecursively(Component comp, Font font) {

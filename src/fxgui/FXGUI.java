@@ -6,6 +6,7 @@ import graphs.GridGraph;
 import graphs.Edge;
 import graphs.SingleSourceGraphPaths;
 import graphs.GraphAlgorithms;
+import graphs.GraphIO;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -186,7 +187,7 @@ public class FXGUI extends Application {
                     if (file != null) {
                         System.out.println("Save graph");
                         try {
-                            GraphAlgorithms.saveGridGraph(graph, new PrintWriter(file));
+                            GraphIO.saveGridGraph(graph, new PrintWriter(file));
                         } catch (IOException e) {
                             System.out.println("NOT SAVED: " + e.getLocalizedMessage());
                         }
@@ -210,7 +211,7 @@ public class FXGUI extends Application {
                     System.out.println("Load graph");
                     try {
                         Reader r = new FileReader(file);
-                        graph = GraphAlgorithms.readGridGraph(r);
+                        graph = GraphIO.readGridGraph(r);
                         r.close();
                         sTextField.setText(graph.getNumColumns() + " x " + graph.getNumRows());
                         minWght = graph.getMinEdgeWeight();
@@ -347,7 +348,7 @@ public class FXGUI extends Application {
                                 mst = GraphAlgorithms.kruskal(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
-                                GraphAlgorithms.saveGridGraph( new GridGraph(graph.getNumColumns(), graph.getNumRows(), mst),new PrintWriter(new File("LastMST")));
+                                GraphIO.saveGridGraph( new GridGraph(graph.getNumColumns(), graph.getNumRows(), mst),new PrintWriter(new File("LastMST")));
                                 System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
                                 pathsSS = null;
                                 pathsAll = null;
@@ -357,7 +358,7 @@ public class FXGUI extends Application {
                                 mst = GraphAlgorithms.prim(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
-                                GraphAlgorithms.saveGridGraph(new GridGraph(graph.getNumColumns(), graph.getNumRows(), mst),new PrintWriter(new File("LastMST")));
+                                GraphIO.saveGridGraph(new GridGraph(graph.getNumColumns(), graph.getNumRows(), mst),new PrintWriter(new File("LastMST")));
                                 System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
                                 pathsSS = null;
                                 pathsAll = null;
@@ -367,7 +368,7 @@ public class FXGUI extends Application {
                                 mst = GraphAlgorithms.classical_prim(graph);
                                 long finish = System.nanoTime();
                                 System.out.println((finish - start) / 1000 + " microseconds");
-                                GraphAlgorithms.saveGridGraph(new GridGraph(graph.getNumColumns(), graph.getNumRows(), mst),new PrintWriter(new File("LastMST")));
+                                GraphIO.saveGridGraph(new GridGraph(graph.getNumColumns(), graph.getNumRows(), mst),new PrintWriter(new File("LastMST")));
                                 System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
                                 pathsSS = null;
                                 pathsAll = null;

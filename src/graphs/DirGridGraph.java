@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Random;
 
 /**
- *
+ * Directed Grid Graph
  * @author jstar
  */
 public class DirGridGraph extends GridGraph {

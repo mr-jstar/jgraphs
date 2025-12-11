@@ -1,9 +1,5 @@
 package graphs;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Reader;
 import java.util.*;
 
 import java.text.DecimalFormat;
@@ -112,26 +108,6 @@ public class GraphAlgorithms {
         }
     }
 
-    public static ModifiableGraph read(Reader r) throws IOException {
-        try {
-            ModifiableGraph g = new ModifiableGraph();
-            BufferedReader br = new BufferedReader(r);
-            String[] words = br.readLine().split("\\s*");
-            int nNodes = Integer.parseInt(words[0]);
-            for (int i = 0; i < nNodes; i++) {
-                g.addNode(i);
-                words = br.readLine().split("[\\s:]*");
-                for (int j = 0; j < words.length; j += 2) {
-                    g.addEdge(i, Integer.parseInt(words[j]), Double.parseDouble(words[j + 1]));
-                }
-            }
-            br.close();
-            r.close();
-            return g;
-        } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-            throw new IOException("Can not read graph: " + e.getMessage());
-        }
-    }
 
     public static boolean valid(Graph g, int startNode) {
         if (g == null || g.getNumNodes() < 1 || startNode < 0 || startNode >= g.getNumNodes()) {
@@ -566,81 +542,6 @@ public class GraphAlgorithms {
         return new AllToAllGraphPaths(d, p);
     }
 
-    public static void saveGridGraph(GridGraph g, PrintWriter pw) throws IOException {
-        pw.println(g.getNumColumns() + " " + g.getNumRows());
-        for (int i = 0; i < g.getNumColumns() * g.getNumRows(); i++) {
-            HashSet<Edge> edges = g.getConnectionsList(i);
-            pw.print("\t");
-            if (edges != null) {
-                for (Edge e : edges) {
-                    pw.print(" " + e.getNodeB() + " :" + e.getWeight() + " ");
-
-                }
-            }
-            pw.println();
-        }
-        pw.close();
-    }
-
-    public static void saveBasicGraph(BasicGraph g, PrintWriter pw) throws IOException {
-        pw.println(g.getNumNodes());
-        for (int i = 0; i < g.getNumNodes(); i++) {
-            HashSet<Edge> edges = g.getConnectionsList(i);
-            pw.print("\t");
-            if (edges != null) {
-                for (Edge e : edges) {
-                    pw.print(" " + e.getNodeB() + " :" + e.getWeight() + " ");
-
-                }
-            }
-            pw.println();
-        }
-        pw.close();
-    }
-
-    public static BasicGraph readBasicGraph(Reader r) throws IOException {
-        try {
-            BufferedReader br = new BufferedReader(r);
-            String[] words = br.readLine().split("\\s*");
-            int nextNodeNo = Integer.parseInt(words[0]);
-            HashMap<Integer, HashSet<Edge>> connectLists = new HashMap<>();
-            for (int i = 0; i < nextNodeNo; i++) {
-                HashSet<Edge> edges = new HashSet<>();
-                words = br.readLine().split("[\\s:]*");
-                for (int j = 0; j < words.length; j += 2) {
-                    edges.add(new Edge(i, Integer.parseInt(words[j]), Double.parseDouble(words[j + 1])));
-                }
-                connectLists.put(i, edges);
-            }
-            return new BasicGraph(nextNodeNo, connectLists);
-        } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-            throw new IOException("GridGraph can not read graph: " + e.getMessage());
-        }
-    }
-
-    public static GridGraph readGridGraph(Reader r) throws IOException {
-        try {
-            BufferedReader br = new BufferedReader(r);
-            String[] words = br.readLine().trim().split("\\s+");
-            int numColumns = Integer.parseInt(words[0]);
-            int numRows = Integer.parseInt(words[1]);
-            HashMap<Integer, HashSet<Edge>> connectLists = new HashMap<>();
-            //System.out.println(numColumns+" "+numRows);
-            for (int i = 0; i < numColumns * numRows; i++) {
-                HashSet<Edge> edges = new HashSet<>();
-                words = br.readLine().trim().split("[\\s:]+");
-                //System.out.println(i+":"+words.length);
-                for (int j = 0; j + 1 < words.length; j += 2) {
-                    Edge e = new Edge(i, Integer.parseInt(words[j]), Double.parseDouble(words[j + 1]));
-                    edges.add(e);
-                }
-                connectLists.put(i, edges);
-            }
-            return new GridGraph(numColumns, numRows, connectLists);
-        } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-            throw new IOException("GridGraph can not read graph: " + e);
-        }
-    }
 
     public static List<List<Edge>> partition_Kernighan_Lin(Graph graph, int startNode, int iter_limit) {
         Set<Integer> A = new HashSet<>(), B = new HashSet<>();
@@ -651,8 +552,8 @@ public class GraphAlgorithms {
 
         // Inicjalny podział węzłów wg odległości od węzła startNode
         SingleSourceGraphPaths p0 = dijkstra(graph, startNode);
-        if( p0 == null ) {
-            System.err.println( "Can't find shortest paths from node #" + startNode + " of " + graph.getNumNodes());
+        if (p0 == null) {
+            System.err.println("Can't find shortest paths from node #" + startNode + " of " + graph.getNumNodes());
             Thread.currentThread().interrupt();
             return null;
         }
@@ -758,7 +659,7 @@ public class GraphAlgorithms {
         }
 
         for (Edge edge : graph) {
-            if (A.contains(edge.getNodeA()) && B.contains(edge.getNodeB())   
+            if (A.contains(edge.getNodeA()) && B.contains(edge.getNodeB())
                     || A.contains(edge.getNodeB()) && B.contains(edge.getNodeA())) {
                 // koszt zewnętrzny
                 D.put(edge.getNodeA(), D.get(edge.getNodeA()) + edge.getWeight());
@@ -857,5 +758,26 @@ public class GraphAlgorithms {
             vertices.add(e.getNodeA());
             vertices.add(e.getNodeB());
         }
+    }
+    
+    public static List<Edge> boundary( Graph g ) {
+        Integer [] nodes = g.getNodeNumbers().toArray(new Integer[0]);
+        Arrays.sort(nodes);
+        int [] nonWghtDeg = new int[nodes.length];
+        double avg = 0.0;
+        for( int i= 0; i < nonWghtDeg.length; i++ ) {
+            nonWghtDeg[i] = g.getNeighbours(nodes[i]).size();
+            avg += nonWghtDeg[i];
+        }
+        avg /= nodes.length;
+        Arrays.sort(nodes,(i,j)->Integer.compare(nonWghtDeg[i], nonWghtDeg[j]));
+        int i= 0;
+        System.out.print( "BND: ");
+        while( nonWghtDeg[nodes[i]] < avg ) {
+            System.out.print( nodes[i] + "(" + nonWghtDeg[nodes[i]] + ") ");
+            i++;
+        }
+        System.out.println( " razem " + i + ".");
+        return null;
     }
 }

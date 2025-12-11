@@ -112,7 +112,11 @@ public class BasicGraph implements Graph {
     @Override
     public HashSet<Edge> getConnectionsList(int n) {
         HashSet<Edge> s = connectLists == null ? null : connectLists.get(n);
-        return s == null ? new HashSet<>() : s;
+        HashSet<Edge> copy = new HashSet<>();
+        if( s != null )
+            for( Edge e : s )
+                copy.add(e);
+        return copy;
     }
 
     @Override

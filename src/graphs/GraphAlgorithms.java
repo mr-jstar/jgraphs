@@ -109,7 +109,6 @@ public class GraphAlgorithms {
         }
     }
 
-
     public static boolean valid(Graph g, int startNode) {
         if (g == null || g.getNumNodes() < 1 || startNode < 0 || startNode >= g.getNumNodes()) {
             return false;
@@ -312,7 +311,7 @@ public class GraphAlgorithms {
         while (!fifo.isEmpty()) {
             currentNode = fifo.pop();
             for (Edge e : g.getConnectionsList(currentNode)) {
-                int n = e.getNodeB();
+                int n = e.getNodeB() == currentNode ? e.getNodeA() : e.getNodeB();
                 if (c[n] == WHITE) {
                     c[n] = GRAY;
                     p[n] = currentNode;
@@ -543,7 +542,6 @@ public class GraphAlgorithms {
         return new AllToAllGraphPaths(d, p);
     }
 
-
     public static List<List<Edge>> partition_Kernighan_Lin(Graph graph, int startNode, int iter_limit) {
         Set<Integer> A = new HashSet<>(), B = new HashSet<>();
         List<Set<Integer>> neighbours = new ArrayList<>(graph.getNumNodes());
@@ -760,61 +758,77 @@ public class GraphAlgorithms {
             vertices.add(e.getNodeB());
         }
     }
-    
-    public static List<Edge> boundary( Graph g ) {
-        Integer [] nodes = g.getNodeNumbers().toArray(new Integer[0]);
+
+    public static List<Edge> boundary(Graph g) {
+        Integer[] nodes = g.getNodeNumbers().toArray(new Integer[0]);
         Arrays.sort(nodes);
-        int [] nonWghtDeg = new int[nodes.length];
+        int[] nonWghtDeg = new int[nodes.length];
         double avg = 0.0;
-        for( int i= 0; i < nonWghtDeg.length; i++ ) {
+        for (int i = 0; i < nonWghtDeg.length; i++) {
             nonWghtDeg[i] = g.getNeighbours(nodes[i]).size();
             avg += nonWghtDeg[i];
         }
         avg /= nodes.length;
-        Arrays.sort(nodes,(i,j)->Integer.compare(nonWghtDeg[i], nonWghtDeg[j]));
-        int i= 0;
-        System.out.print( avg + " -> BND: ");
-        while( nonWghtDeg[nodes[i]] < avg ) {
+
+        Arrays.sort(nodes, (i, j) -> Integer.compare(nonWghtDeg[i], nonWghtDeg[j]));
+        int i = 0;
+        System.out.print(avg + " -> BND: ");
+        while (nonWghtDeg[nodes[i]] < avg) {
             //System.out.print( nodes[i] + "(" + nonWghtDeg[nodes[i]] + ") ");
             i++;
         }
         List<Integer> bnd = Arrays.stream(nodes).limit(i).collect(Collectors.toList());
-        for( Integer n : bnd ) {
-            System.out.print( n + " (" + nonWghtDeg[n] + ") ");
+        for (Integer n : bnd) {
+            System.out.print(n + " (" + nonWghtDeg[n] + ") ");
         }
-        System.out.println( " razem " + bnd.size() + ".");
+        System.out.println(" razem " + bnd.size() + ".");
         Set<Integer> n0 = g.getNeighbours(bnd.get(0));
         n0.retainAll(bnd);
         int k = n0.iterator().next();
-        for( Integer ki : n0 )
-            if( nonWghtDeg[ki] < nonWghtDeg[k] )
+        for (Integer ki : n0) {
+            if (nonWghtDeg[ki] < nonWghtDeg[k]) {
                 k = ki;
+            }
+        }
         Set<Edge> bE = g.getConnectionsList(bnd.get(0));
-        bE.retainAll(g.getConnectionsList(k) );
+        bE.retainAll(g.getConnectionsList(k));
         List<Edge> bEL = new ArrayList<>(bE);
-        System.out.println( bEL.get(0) );
+        System.out.println(bEL.get(0));
         int endV = bEL.get(0).getNodeA() == bnd.get(0) ? bEL.get(0).getNodeB() : bEL.get(0).getNodeA();
         int startV = bnd.get(0);
         bnd.remove(0);
-        bnd.remove((Integer)endV);
-        while( true ) {
-            System.out.println(endV );
+        bnd.remove((Integer) endV);
+        while (true) {
+            System.out.println(endV);
             int oE = endV;
-            for( int v = 0; v < bnd.size(); v++ ) {
+            for (int v = 0; v < bnd.size(); v++) {
                 Edge e = g.getEdge(endV, bnd.get(v));
-                if( e != null ) {
+                if (e != null) {
                     bEL.add(e);
                     endV = e.getNodeA() == endV ? e.getNodeB() : e.getNodeA();
-                    bnd.remove((Integer)endV);
+                    bnd.remove((Integer) endV);
                     break;
                 } else {
-                    System.out.println("NO " + endV + "->" + bnd.get(v) );
+                    System.out.println("NO " + endV + "->" + bnd.get(v));
                 }
             }
-            if( endV == startV || bnd.isEmpty() || endV == oE )
+            if (endV == startV || bnd.isEmpty() || endV == oE) {
                 break;
+            }
         }
- 
+
         return bEL;
+    }
+
+    public static int initialV(Graph g) {
+        Integer[] nodes = g.getNodeNumbers().toArray(new Integer[0]);
+        Arrays.sort(nodes);
+        int[] nonWghtDeg = new int[nodes.length];
+        for (int i = 0; i < nonWghtDeg.length; i++) {
+            nonWghtDeg[i] = g.getNeighbours(nodes[i]).size();
+        }
+        Arrays.sort(nodes, (i, j) -> Integer.compare(nonWghtDeg[i], nonWghtDeg[j]));
+        System.out.println( "init -> " + nodes[0]);
+        return nodes[0];
     }
 }

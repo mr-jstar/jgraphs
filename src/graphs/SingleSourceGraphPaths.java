@@ -20,7 +20,7 @@ public class SingleSourceGraphPaths {
         this.d = d;
         this.p = p;
         dMin = d[0];
-        dMax = dMin;
+        dMax = d[0];
         src = 0;
         farthest = 0;
         for (int i = 1; i < d.length; i++) {

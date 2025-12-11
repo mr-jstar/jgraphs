@@ -2,6 +2,7 @@ package swinggui;
 
 import graphs.Graph;
 import graphs.GraphAlgorithms;
+import graphs.SingleSourceGraphPaths;
 import java.awt.Point;
 import java.util.Random;
 
@@ -37,6 +38,10 @@ public class AnyGraphView implements GraphView {
         if (last_width == width && last_height == height)
             return;
         GraphAlgorithms.boundary(graph);
+        SingleSourceGraphPaths p = GraphAlgorithms.bfs(graph,GraphAlgorithms.initialV(graph));
+        System.out.println( "from " + p.src + ":" + p.dMin + " to " + p.farthest + ":" + p.dMax );
+        for( int i= 0; i < p.d.length; i++ )
+            System.out.println( i + ":" + p.d[i] + " p=" + p.p[i]);
         if (last_width == -1 || last_height == -1) {
             this.nodeSize = (int) (height / graph.getNumNodes());
             this.nodeSize = this.nodeSize > MAX_NODE_SIZE ? MAX_NODE_SIZE : this.nodeSize;

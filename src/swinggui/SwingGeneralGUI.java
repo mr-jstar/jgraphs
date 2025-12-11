@@ -42,7 +42,7 @@ public class SwingGeneralGUI extends JFrame {
     final static String[] algorithms = {
         "BFS", "DFS Recursive", "DFS Iterative",
         "Dijkstra", "Bellman-Ford", "Floyd-Warshall",
-        "Kruskal", "Prim", "Prim_CLRS",
+         "Prim", "Prim_CLRS", "Kruskal",
         "Kernighan-Lin"
     };
 
@@ -151,7 +151,6 @@ public class SwingGeneralGUI extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(guiOpts);
         setJMenuBar(menuBar);
-        
         setLayout(new BorderLayout());
 
         JLabel gridLabel = new JLabel("Grid size:");
@@ -706,7 +705,7 @@ public class SwingGeneralGUI extends JFrame {
     }
 
     private void redrawContent(Object e) {
-        System.err.println("Redrawing after " + e.getClass());
+        //System.err.println("Redrawing after " + e.getClass());
         drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
         if (pathsSS != null) {
             colorNodes(canvas.getGraphics());

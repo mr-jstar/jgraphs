@@ -5,6 +5,8 @@ import graphs.GraphAlgorithms;
 import graphs.SingleSourceGraphPaths;
 import java.awt.Point;
 import java.util.Random;
+import sparsematrices.EigenValues;
+import sparsematrices.SparseMatrix;
 
 /**
  *
@@ -37,6 +39,7 @@ public class AnyGraphView implements GraphView {
     public void recalculateNodeCoordinates(int width, int height, int nodeSize, int leftSep, int topSep) {
         if (last_width == width && last_height == height)
             return;
+        /*
         Graph bnd = GraphAlgorithms.boundary(graph);
         System.out.println( bnd );     
         //SingleSourceGraphPaths p = GraphAlgorithms.bfs(bnd,GraphAlgorithms.initialV(graph));
@@ -55,17 +58,22 @@ public class AnyGraphView implements GraphView {
         for( int v : path )
             System.out.print( v + "(" + p.d[v] + ") " );
         System.out.println();
+        */
         if (last_width == -1 || last_height == -1) {
+            SparseMatrix L = GraphAlgorithms.laplacian(graph);
+            System.out.println(L);
+            double [] x = new double[graph.getNumNodes()];
+            double [] y = new double[x.length];
+            EigenValues.powerIteration(L, 1e-6, x);
+            EigenValues.powerIterationSecondEigen(L, 1e-6, x, y);
             this.nodeSize = (int) (height / graph.getNumNodes());
             this.nodeSize = this.nodeSize > MAX_NODE_SIZE ? MAX_NODE_SIZE : this.nodeSize;
             this.nodeSize = this.nodeSize < MIN_NODE_SIZE ? MIN_NODE_SIZE : this.nodeSize;
             leftSep = leftSep < 2 * nodeSize ? 2 * nodeSize : leftSep;
             topSep = leftSep;
-            double xmin = Double.POSITIVE_INFINITY, xmax = Double.NEGATIVE_INFINITY;
-            double ymin = Double.POSITIVE_INFINITY, ymax = Double.NEGATIVE_INFINITY;
             for (int v = 0; v < graph.getNumNodes(); v++) {
-                rc[v][0] = leftSep + (int) ((width - 2 * leftSep) * rand.nextDouble());
-                rc[v][1] = topSep + (int) ((height - 2 * topSep) * rand.nextDouble());
+                rc[v][0] = leftSep + (int) ((width - 2 * leftSep) * x[v]);
+                rc[v][1] = topSep + (int) ((height - 2 * topSep) * y[v]);
             }
         } else {
             double w_ratio = (double) width / last_width;

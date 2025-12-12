@@ -4,6 +4,8 @@ import java.util.*;
 
 import java.text.DecimalFormat;
 import java.util.stream.Collectors;
+import sparsematrices.HashMapSparseMatrix;
+import sparsematrices.SparseMatrix;
 
 /**
  *
@@ -22,14 +24,14 @@ public class GraphAlgorithms {
 
         private int[] h;    // heap
         private int n;      // actual length of heap
-        private double[] d; // distances of all nodes to the source
-        private int[] pos;  // positions of all nodes to the source
+        private double[] d; // distances of all indexToVertex to the source
+        private int[] pos;  // positions of all indexToVertex to the source
         // pos is used to find the position of node x on the heap at O(1)
 
         HeapPQ(double[] d) {
             this.d = d;              // copy of the table used in Dijkstra algorithm
             pos = new int[d.length];
-            Arrays.fill(pos, -1);    // none of the nodes is on the heap
+            Arrays.fill(pos, -1);    // none of the indexToVertex is on the heap
             h = new int[d.length];
             n = 0;                   // initially the heap is empty
         }
@@ -774,7 +776,7 @@ public class GraphAlgorithms {
         int i = 0;
         System.out.print(avg + " -> BND: ");
         while (nonWghtDeg[nodes[i]] < avg) {
-            //System.out.print( nodes[i] + "(" + nonWghtDeg[nodes[i]] + ") ");
+            //System.out.print( indexToVertex[i] + "(" + nonWghtDeg[indexToVertex[i]] + ") ");
             i++;
         }
         List<Integer> bnd = Arrays.stream(nodes).limit(i).collect(Collectors.toList());
@@ -828,11 +830,11 @@ public class GraphAlgorithms {
             nonWghtDeg[i] = g.getNeighbours(nodes[i]).size();
         }
         Arrays.sort(nodes, (i, j) -> Integer.compare(nonWghtDeg[i], nonWghtDeg[j]));
-        System.out.println( "init -> " + nodes[0]);
+        System.out.println("init -> " + nodes[0]);
         return nodes[0];
     }
-    
-       public static Graph boundary(Graph g) {
+
+    public static Graph boundary(Graph g) {
         Integer[] nodes = g.getNodeNumbers().toArray(new Integer[0]);
         Arrays.sort(nodes);
         int[] nonWghtDeg = new int[nodes.length];
@@ -850,10 +852,38 @@ public class GraphAlgorithms {
         while (nonWghtDeg[nodes[i]] < avg) {
             System.out.print(nodes[i] + " ");
             Set<Edge> es = g.getConnectionsList(nodes[i]);
-            for( Edge e : es )
+            for (Edge e : es) {
                 b.addEdge(e);
+            }
             i++;
         }
         return prim(b);
+    }
+    
+    public static SparseMatrix laplacian( Graph g ) {
+        Integer[] indexToVertex = g.getNodeNumbers().toArray(new Integer[0]);
+        Arrays.sort(indexToVertex);
+        for( Integer v : indexToVertex)
+            System.err.print( v + " " );
+        System.err.println();
+
+        Map<Integer, Integer> vertexToIndex = new HashMap<>();  
+        for( int i= 0; i < indexToVertex.length; i++ )
+            vertexToIndex.put( indexToVertex[i], i );
+        
+        for( Integer v : vertexToIndex.keySet())
+            System.err.print( v + "->" + vertexToIndex.get(v) + " ");
+        System.err.println(  );
+        
+        HashMapSparseMatrix L = new HashMapSparseMatrix(indexToVertex.length);
+        for( int i= 0; i < indexToVertex.length; i++ ) {
+            Set<Integer> neighbours = g.getNeighbours(indexToVertex[i]);
+            L.set(i, i, neighbours.size());
+            for( Integer v : neighbours ) {
+                L.set(i, vertexToIndex.get(v), -1);
+                L.set(vertexToIndex.get(v), i, -1);
+            }
+        }
+        return L.toCRSsorted();
     }
 }

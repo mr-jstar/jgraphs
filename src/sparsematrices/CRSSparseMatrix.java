@@ -93,6 +93,7 @@ public class CRSSparseMatrix implements SparseMatrix {
         }
     }
     
+    @Override
     public void multiply(double[] x, double[] r) {
         for (int i = 0; i < ia.length - 1; i++) {
             r[i] = 0.0;

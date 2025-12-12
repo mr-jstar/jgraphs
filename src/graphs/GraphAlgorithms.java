@@ -759,7 +759,7 @@ public class GraphAlgorithms {
         }
     }
 
-    public static List<Edge> boundary(Graph g) {
+    public static List<Edge> boundary_tst(Graph g) {
         Integer[] nodes = g.getNodeNumbers().toArray(new Integer[0]);
         Arrays.sort(nodes);
         int[] nonWghtDeg = new int[nodes.length];
@@ -830,5 +830,30 @@ public class GraphAlgorithms {
         Arrays.sort(nodes, (i, j) -> Integer.compare(nonWghtDeg[i], nonWghtDeg[j]));
         System.out.println( "init -> " + nodes[0]);
         return nodes[0];
+    }
+    
+       public static Graph boundary(Graph g) {
+        Integer[] nodes = g.getNodeNumbers().toArray(new Integer[0]);
+        Arrays.sort(nodes);
+        int[] nonWghtDeg = new int[nodes.length];
+        double avg = 0.0;
+        for (int i = 0; i < nonWghtDeg.length; i++) {
+            nonWghtDeg[i] = g.getNeighbours(nodes[i]).size();
+            avg += nonWghtDeg[i];
+        }
+        avg /= nodes.length;
+
+        Arrays.sort(nodes, (i, j) -> Integer.compare(nonWghtDeg[i], nonWghtDeg[j]));
+        ModifiableGraph b = new ModifiableGraph();
+        int i = 0;
+        System.out.print(avg + " -> BND: ");
+        while (nonWghtDeg[nodes[i]] < avg) {
+            System.out.print(nodes[i] + " ");
+            Set<Edge> es = g.getConnectionsList(nodes[i]);
+            for( Edge e : es )
+                b.addEdge(e);
+            i++;
+        }
+        return prim(b);
     }
 }

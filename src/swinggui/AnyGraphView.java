@@ -37,11 +37,24 @@ public class AnyGraphView implements GraphView {
     public void recalculateNodeCoordinates(int width, int height, int nodeSize, int leftSep, int topSep) {
         if (last_width == width && last_height == height)
             return;
-        GraphAlgorithms.boundary(graph);
-        SingleSourceGraphPaths p = GraphAlgorithms.bfs(graph,GraphAlgorithms.initialV(graph));
+        Graph bnd = GraphAlgorithms.boundary(graph);
+        System.out.println( bnd );     
+        //SingleSourceGraphPaths p = GraphAlgorithms.bfs(bnd,GraphAlgorithms.initialV(graph));
+        SingleSourceGraphPaths p = GraphAlgorithms.dfs(bnd);
         System.out.println( "from " + p.src + ":" + p.dMin + " to " + p.farthest + ":" + p.dMax );
         for( int i= 0; i < p.d.length; i++ )
             System.out.println( i + ":" + p.d[i] + " p=" + p.p[i]);
+        int [] path = new int[(int)(p.dMax+1)];
+        int i= path.length-1;
+        path[i] = p.farthest;
+        while( p.p[path[i]] != -1 ) {
+            int prev = p.p[path[i]];
+            path[--i] = prev;
+        }
+        path[0] = p.src;
+        for( int v : path )
+            System.out.print( v + "(" + p.d[v] + ") " );
+        System.out.println();
         if (last_width == -1 || last_height == -1) {
             this.nodeSize = (int) (height / graph.getNumNodes());
             this.nodeSize = this.nodeSize > MAX_NODE_SIZE ? MAX_NODE_SIZE : this.nodeSize;

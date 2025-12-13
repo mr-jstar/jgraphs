@@ -62,11 +62,12 @@ public class AnyGraphView implements GraphView {
         */
         if (last_width == -1 || last_height == -1) {
             SparseMatrix L = GraphAlgorithms.weightedLaplacian(graph);
-            System.out.println(L);
+            //System.out.println(L);
             double [] x = new double[graph.getNumNodes()];
             double [] y = new double[x.length];
             EigenValues.powerIteration(L, 1e-6, x);
             EigenValues.powerIterationSecondEigen(L, 1e-6, x, y);
+            System.out.println( "x.y=" + EigenValues.dot(x,y));
             this.nodeSize = (int) (height / graph.getNumNodes());
             this.nodeSize = this.nodeSize > MAX_NODE_SIZE ? MAX_NODE_SIZE : this.nodeSize;
             this.nodeSize = this.nodeSize < MIN_NODE_SIZE ? MIN_NODE_SIZE : this.nodeSize;

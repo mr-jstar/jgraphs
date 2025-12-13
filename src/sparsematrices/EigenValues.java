@@ -46,7 +46,7 @@ public class EigenValues {
             // przepisz
             System.arraycopy(y, 0, x, 0, n);
             lambda = lambdaNew;
-            System.out.println(lambda);
+            System.out.println("it " + iter + ": " + lambda);
 
             if (Math.sqrt(diff) < tol) {
                 break;
@@ -99,7 +99,7 @@ public class EigenValues {
 
             System.arraycopy(y, 0, x, 0, n);
             lambda = lambdaNew;
-            System.out.println(lambda);
+            System.out.println("it " + iter + ": " + lambda);
 
             if (Math.sqrt(diff) < tol) {
                 break;
@@ -124,11 +124,16 @@ public class EigenValues {
         }
     }
 
-    private static void projectOut(double[] y, double[] v) {
+    public static double dot(double[] x, double[]y) {
         double dot = 0.0;
-        for (int i = 0; i < y.length; i++) {
-            dot += y[i] * v[i];
+        for (int i = 0; i < x.length; i++) {
+            dot += x[i] * y[i];
         }
+        return dot;
+    }
+
+    private static void projectOut(double[] y, double[] v) {
+        double dot = dot(y,v);
         // y <- y - dot * v
         for (int i = 0; i < y.length; i++) {
             y[i] -= dot * v[i];

@@ -4,6 +4,7 @@ import graphs.Graph;
 import graphs.GraphAlgorithms;
 import graphs.SingleSourceGraphPaths;
 import java.awt.Point;
+import java.text.Normalizer;
 import java.util.Random;
 import sparsematrices.EigenValues;
 import sparsematrices.SparseMatrix;
@@ -60,7 +61,7 @@ public class AnyGraphView implements GraphView {
         System.out.println();
         */
         if (last_width == -1 || last_height == -1) {
-            SparseMatrix L = GraphAlgorithms.laplacian(graph);
+            SparseMatrix L = GraphAlgorithms.weightedLaplacian(graph);
             System.out.println(L);
             double [] x = new double[graph.getNumNodes()];
             double [] y = new double[x.length];
@@ -71,6 +72,8 @@ public class AnyGraphView implements GraphView {
             this.nodeSize = this.nodeSize < MIN_NODE_SIZE ? MIN_NODE_SIZE : this.nodeSize;
             leftSep = leftSep < 2 * nodeSize ? 2 * nodeSize : leftSep;
             topSep = leftSep;
+            normalize( x );
+            normalize( y );
             for (int v = 0; v < graph.getNumNodes(); v++) {
                 rc[v][0] = leftSep + (int) ((width - 2 * leftSep) * x[v]);
                 rc[v][1] = topSep + (int) ((height - 2 * topSep) * y[v]);
@@ -85,6 +88,17 @@ public class AnyGraphView implements GraphView {
         }
         last_height = height;
         last_width = width;
+    }
+    
+    private static void normalize( double [] x ) {
+            double min = x[0], max = x[0];
+            for( double c : x ) {
+                if( c < min ) min = c;
+                if( c > max ) max = c;
+            }
+            double delta = max - min;
+            for( int i = 0; i < x.length; i++ )
+                x[i] = (x[i]-min)/delta;
     }
 
     @Override

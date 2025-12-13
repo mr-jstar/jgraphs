@@ -859,30 +859,74 @@ public class GraphAlgorithms {
         }
         return prim(b);
     }
-    
-    public static SparseMatrix laplacian( Graph g ) {
+
+    public static SparseMatrix laplacian(Graph g) {
         Integer[] indexToVertex = g.getNodeNumbers().toArray(new Integer[0]);
         Arrays.sort(indexToVertex);
-        for( Integer v : indexToVertex)
-            System.err.print( v + " " );
+        for (Integer v : indexToVertex) {
+            System.err.print(v + " ");
+        }
         System.err.println();
 
-        Map<Integer, Integer> vertexToIndex = new HashMap<>();  
-        for( int i= 0; i < indexToVertex.length; i++ )
-            vertexToIndex.put( indexToVertex[i], i );
-        
-        for( Integer v : vertexToIndex.keySet())
-            System.err.print( v + "->" + vertexToIndex.get(v) + " ");
-        System.err.println(  );
-        
+        Map<Integer, Integer> vertexToIndex = new HashMap<>();
+        for (int i = 0; i < indexToVertex.length; i++) {
+            vertexToIndex.put(indexToVertex[i], i);
+        }
+
+        for (Integer v : vertexToIndex.keySet()) {
+            System.err.print(v + "->" + vertexToIndex.get(v) + " ");
+        }
+        System.err.println();
+
         HashMapSparseMatrix L = new HashMapSparseMatrix(indexToVertex.length);
-        for( int i= 0; i < indexToVertex.length; i++ ) {
+        for (int i = 0; i < indexToVertex.length; i++) {
             Set<Integer> neighbours = g.getNeighbours(indexToVertex[i]);
             L.set(i, i, neighbours.size());
-            for( Integer v : neighbours ) {
+            for (Integer v : neighbours) {
                 L.set(i, vertexToIndex.get(v), -1);
                 L.set(vertexToIndex.get(v), i, -1);
             }
+        }
+        return L.toCRSsorted();
+    }
+
+    public static SparseMatrix weightedLaplacian(Graph g) {
+        Integer[] indexToVertex = g.getNodeNumbers().toArray(new Integer[0]);
+        Arrays.sort(indexToVertex);
+        /*
+        for (Integer v : indexToVertex) {
+            System.err.print(v + " ");
+        }
+        System.err.println();
+*/
+        Map<Integer, Integer> vertexToIndex = new HashMap<>();
+        for (int i = 0; i < indexToVertex.length; i++) {
+            vertexToIndex.put(indexToVertex[i], i);
+        }
+
+        /*
+        for (Integer v : vertexToIndex.keySet()) {
+            System.err.print(v + "->" + vertexToIndex.get(v) + " ");
+        }
+        System.err.println();
+*/
+
+        HashMapSparseMatrix L = new HashMapSparseMatrix(indexToVertex.length);
+        for (int i = 0; i < indexToVertex.length; i++) {
+            Set<Edge> edges = g.getConnectionsList(indexToVertex[i]);
+            double diag = 0.0;
+            for (Edge e : edges) {
+                diag += e.getWeight();
+            }
+            L.set( i, i, diag);
+        }
+        Set<Edge> es = g.getAllEdges();
+        for (Edge e : es) {
+            Integer iA = vertexToIndex.get(e.getNodeA());
+            Integer iB = vertexToIndex.get(e.getNodeB());
+            double w = - e.getWeight();
+            L.set( iA, iB, w );
+            L.set( iB, iA, w );
         }
         return L.toCRSsorted();
     }

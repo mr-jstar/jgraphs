@@ -145,6 +145,7 @@ public class GraphAlgorithms {
         for (Edge e : g.getConnectionsList(0)) {
             pq.add(e);
         }
+        int ne=0;
         while (!pq.isEmpty() && mst.getNumNodes() < g.getNumNodes()) {
             //System.out.println( "Prim: |V.mst|="+mst.getNumNodes()+"  |PQ|="+pq.size());
             Edge se = pq.poll();
@@ -154,20 +155,24 @@ public class GraphAlgorithms {
             if (inMST[nA] && !inMST[nB]) {
                 mst.addNode(nB);
                 inMST[nB] = true;
-                mst.addEdge(nA, nB, se.getWeight());
+                mst.addEdge(se);
+                ne++;
+                //System.out.println(ne++ + " + added " + se );
                 for (Edge e : g.getConnectionsList(nB)) {
                     pq.add(e);
                 }
             } else if (!inMST[nA] && inMST[nB]) {
                 mst.addNode(nA);
                 inMST[nA] = true;
-                mst.addEdge(nB, nA, se.getWeight());
+                mst.addEdge(se);
+                ne++;
+                //System.out.println(ne++ + " + added " + se );
                 for (Edge e : g.getConnectionsList(nA)) {
                     pq.add(e);
                 }
             }
         }
-        System.out.println("Total weight " + weightSum(mst));
+        System.out.println("Total " + ne + " edges, weight " + weightSum(mst));
         return mst;
     }
 
@@ -181,12 +186,14 @@ public class GraphAlgorithms {
         Arrays.fill(inMST, false);
         ModifiableGraph mst = new ModifiableGraph();
         pq.add(0, 0.0);
+        int ne= 0;
         while (!pq.isEmpty()) {
             int u = pq.poll();
             mst.addNode(u);
             inMST[u] = true;
             if (connection[u] != null) {
                 mst.addEdge(connection[u]);
+                ne++;
             }
             //System.out.println("Added " + u);
             for (Edge e : g.getConnectionsList(u)) {
@@ -203,7 +210,7 @@ public class GraphAlgorithms {
             }
             //System.out.println(pq);
         }
-        System.out.println("Total weight " + weightSum(mst));
+        System.out.println("Total " + ne + " edges, total weight " + weightSum(mst));
         return mst;
     }
 
@@ -485,6 +492,7 @@ public class GraphAlgorithms {
 
     private static final DecimalFormat df = new DecimalFormat("0.00");
 
+    //for testing
     private static void printArray(double[][] d) {
         int nn = d.length;
         for (int i = 0; i < nn; i++) {
@@ -495,6 +503,7 @@ public class GraphAlgorithms {
         }
     }
 
+    //for testing
     private static void printArray(int[][] d) {
         int nn = d.length;
         for (int i = 0; i < nn; i++) {

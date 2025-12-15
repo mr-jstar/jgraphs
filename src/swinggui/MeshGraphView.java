@@ -64,8 +64,8 @@ public class MeshGraphView implements GraphView {
         double xc = 0.5 * (xmin + xmax);
         double yc = 0.5 * (ymin + ymax);
         xmin = xc - xspan / 2;
-        xmax = xc + xspan / 2;
-        ymin = yc - yspan / 2;
+        //xmax = xc + xspan / 2;  // not used
+        //ymin = yc - yspan / 2;  // not used
         ymax = yc + yspan / 2;
         //System.err.println("<"+xmin+","+xmax+"> x <"+ymin+","+ymax+">");
         for (int v = 0; v < mesh.getNoVertices(); v++) {

@@ -23,6 +23,7 @@ public class Edge implements EdgeInterface {
     /**
      * @return the nodeA
      */
+    @Override
     public int getNodeA() {
         return nodeA;
     }
@@ -37,6 +38,7 @@ public class Edge implements EdgeInterface {
     /**
      * @return the nodeB
      */
+    @Override
     public int getNodeB() {
         return nodeB;
     }
@@ -49,8 +51,25 @@ public class Edge implements EdgeInterface {
     }
 
     /**
+     * @return the node with smaller #
+     */
+    @Override
+    public int getMinNodeNo() {
+        return nodeA < nodeB ? nodeA : nodeB;
+    }
+
+    /**
+     * @return the node with bigger #
+     */
+    @Override
+    public int getMaxNodeNo() {
+        return nodeA > nodeB ? nodeA : nodeB;
+    }
+
+    /**
      * @return the weight
      */
+    @Override
     public double getWeight() {
         return weight;
     }
@@ -71,7 +90,7 @@ public class Edge implements EdgeInterface {
 
     @Override
     public String toString() {
-        return (name == null ? "" : name+" ") + nodeA + "-(" + weight + ")-" + nodeB;
+        return (name == null ? "" : name + " ") + nodeA + "-(" + weight + ")-" + nodeB;
     }
 
     @Override

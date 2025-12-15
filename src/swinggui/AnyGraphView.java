@@ -4,7 +4,6 @@ import graphs.Graph;
 import graphs.GraphAlgorithms;
 import graphs.SingleSourceGraphPaths;
 import java.awt.Point;
-import java.text.Normalizer;
 import java.util.Random;
 import sparsematrices.EigenValues;
 import sparsematrices.SparseMatrix;
@@ -26,8 +25,18 @@ public class AnyGraphView implements GraphView {
     private int last_height = -1;
     private int nodeSize;
 
+    private int vertexLocation;
+
     public AnyGraphView(Graph graph) {
         this.graph = graph;
+        rc = new int[graph.getNumNodes()][2];
+    }
+
+    public AnyGraphView(Graph graph, int vertexLocation) {
+        this.graph = graph;
+        this.vertexLocation = vertexLocation;  // 0 - random,
+                                               // 1 - GraphLaplacian -> first 2 eigenvectors -> (x,y)
+                                               // 2 - boudary -> rectangular mesh transform
         rc = new int[graph.getNumNodes()][2];
     }
 
@@ -38,46 +47,66 @@ public class AnyGraphView implements GraphView {
 
     @Override
     public void recalculateNodeCoordinates(int width, int height, int nodeSize, int leftSep, int topSep) {
-        if (last_width == width && last_height == height)
+        if (last_width == width && last_height == height) {
             return;
-        /*
-        Graph bnd = GraphAlgorithms.boundary(graph);
-        System.out.println( bnd );     
-        //SingleSourceGraphPaths p = GraphAlgorithms.bfs(bnd,GraphAlgorithms.initialV(graph));
-        SingleSourceGraphPaths p = GraphAlgorithms.dfs(bnd);
-        System.out.println( "from " + p.src + ":" + p.dMin + " to " + p.farthest + ":" + p.dMax );
-        for( int i= 0; i < p.d.length; i++ )
-            System.out.println( i + ":" + p.d[i] + " p=" + p.p[i]);
-        int [] path = new int[(int)(p.dMax+1)];
-        int i= path.length-1;
-        path[i] = p.farthest;
-        while( p.p[path[i]] != -1 ) {
-            int prev = p.p[path[i]];
-            path[--i] = prev;
         }
-        path[0] = p.src;
-        for( int v : path )
-            System.out.print( v + "(" + p.d[v] + ") " );
-        System.out.println();
-        */
+
         if (last_width == -1 || last_height == -1) {
-            SparseMatrix L = GraphAlgorithms.weightedLaplacian(graph);
-            //System.out.println(L);
-            double [] x = new double[graph.getNumNodes()];
-            double [] y = new double[x.length];
-            EigenValues.powerIteration(L, 1e-6, x);
-            EigenValues.powerIterationSecondEigen(L, 1e-6, x, y);
-            System.out.println( "x.y=" + EigenValues.dot(x,y));
-            this.nodeSize = (int) (height / graph.getNumNodes());
-            this.nodeSize = this.nodeSize > MAX_NODE_SIZE ? MAX_NODE_SIZE : this.nodeSize;
-            this.nodeSize = this.nodeSize < MIN_NODE_SIZE ? MIN_NODE_SIZE : this.nodeSize;
-            leftSep = leftSep < 2 * nodeSize ? 2 * nodeSize : leftSep;
-            topSep = leftSep;
-            normalize( x );
-            normalize( y );
-            for (int v = 0; v < graph.getNumNodes(); v++) {
-                rc[v][0] = leftSep + (int) ((width - 2 * leftSep) * x[v]);
-                rc[v][1] = topSep + (int) ((height - 2 * topSep) * y[v]);
+            System.out.println( "Vertex Locatio method " + vertexLocation);
+            switch (vertexLocation) {
+                case 2 -> {
+                    Graph bnd = GraphAlgorithms.boundary(graph);
+                    System.out.println(bnd);
+                    //SingleSourceGraphPaths p = GraphAlgorithms.bfs(bnd,GraphAlgorithms.initialV(graph));
+                    SingleSourceGraphPaths p = GraphAlgorithms.dfs(bnd);
+                    System.out.println("from " + p.src + ":" + p.dMin + " to " + p.farthest + ":" + p.dMax);
+                    for (int i = 0; i < p.d.length; i++) {
+                        System.out.println(i + ":" + p.d[i] + " p=" + p.p[i]);
+                    }
+                    int[] path = new int[(int) (p.dMax + 1)];
+                    int i = path.length - 1;
+                    path[i] = p.farthest;
+                    while (p.p[path[i]] != -1) {
+                        int prev = p.p[path[i]];
+                        path[--i] = prev;
+                    }
+                    path[0] = p.src;
+                    for (int v : path) {
+                        System.out.print(v + "(" + p.d[v] + ") ");
+                    }
+                    System.out.println();
+
+                    for (int v = 0; v < graph.getNumNodes(); v++) {
+                        rc[v][0] = leftSep + (int) ((width - 2 * leftSep) * rand.nextDouble());
+                        rc[v][1] = topSep + (int) ((height - 2 * topSep) * rand.nextDouble());
+                    }
+                }
+                case 1 -> {
+                    SparseMatrix L = GraphAlgorithms.weightedLaplacian(graph);
+                    //System.out.println(L);
+                    double[] x = new double[graph.getNumNodes()];
+                    double[] y = new double[x.length];
+                    EigenValues.powerIteration(L, 1e-6, x);
+                    EigenValues.powerIterationSecondEigen(L, 1e-6, x, y);
+                    System.out.println("x.y=" + EigenValues.dot(x, y));
+                    this.nodeSize = (int) (height / graph.getNumNodes());
+                    this.nodeSize = this.nodeSize > MAX_NODE_SIZE ? MAX_NODE_SIZE : this.nodeSize;
+                    this.nodeSize = this.nodeSize < MIN_NODE_SIZE ? MIN_NODE_SIZE : this.nodeSize;
+                    leftSep = leftSep < 2 * nodeSize ? 2 * nodeSize : leftSep;
+                    topSep = leftSep;
+                    normalize(x);
+                    normalize(y);
+                    for (int v = 0; v < graph.getNumNodes(); v++) {
+                        rc[v][0] = leftSep + (int) ((width - 2 * leftSep) * x[v]);
+                        rc[v][1] = topSep + (int) ((height - 2 * topSep) * y[v]);
+                    }
+                }
+                case 0 -> {
+                    for (int v = 0; v < graph.getNumNodes(); v++) {
+                        rc[v][0] = leftSep + (int) ((width - 2 * leftSep) * rand.nextDouble());
+                        rc[v][1] = topSep + (int) ((height - 2 * topSep) * rand.nextDouble());
+                    }
+                }
             }
         } else {
             double w_ratio = (double) width / last_width;
@@ -90,16 +119,21 @@ public class AnyGraphView implements GraphView {
         last_height = height;
         last_width = width;
     }
-    
-    private static void normalize( double [] x ) {
-            double min = x[0], max = x[0];
-            for( double c : x ) {
-                if( c < min ) min = c;
-                if( c > max ) max = c;
+
+    private static void normalize(double[] x) {
+        double min = x[0], max = x[0];
+        for (double c : x) {
+            if (c < min) {
+                min = c;
             }
-            double delta = max - min;
-            for( int i = 0; i < x.length; i++ )
-                x[i] = (x[i]-min)/delta;
+            if (c > max) {
+                max = c;
+            }
+        }
+        double delta = max - min;
+        for (int i = 0; i < x.length; i++) {
+            x[i] = (x[i] - min) / delta;
+        }
     }
 
     @Override

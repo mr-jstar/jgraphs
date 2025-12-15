@@ -43,7 +43,7 @@ public class SwingGeneralGUI extends JFrame {
     final static String[] algorithms = {
         "BFS", "DFS Recursive", "DFS Iterative",
         "Dijkstra", "Bellman-Ford", "Floyd-Warshall",
-         "Prim", "Prim_CLRS", "Kruskal",
+        "Prim", "Prim_CLRS", "Kruskal",
         "Kernighan-Lin"
     };
 
@@ -131,7 +131,7 @@ public class SwingGeneralGUI extends JFrame {
         setTitle("Swing Graph GUI");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(DEFAULTWIDTH, DEFAULTHEIGHT);
-        
+
         /*
         JMenu guiOpts = new JMenu("GUI options");
         ButtonGroup fgroup = new ButtonGroup();
@@ -153,8 +153,7 @@ public class SwingGeneralGUI extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(guiOpts);
         setJMenuBar(menuBar);
-        */
-
+         */
         setLayout(new BorderLayout());
 
         JLabel gridLabel = new JLabel("Grid size:");
@@ -242,6 +241,7 @@ public class SwingGeneralGUI extends JFrame {
                             stopRunningAlgorithms();
                         } catch (Exception ex) {
                             error("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
+                            return;
                         }
                     } else {
                         // not a mesh - try possible graph formats
@@ -264,6 +264,7 @@ public class SwingGeneralGUI extends JFrame {
                             return;
                         } catch (IOException ex) {
                             //error("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
+                            System.out.println("\t - failed.");
                         }
                         // if here - failed to read GridGraph
                         System.out.println("Try to load adjacency list");
@@ -284,6 +285,7 @@ public class SwingGeneralGUI extends JFrame {
                             return;
                         } catch (IOException ex) {
                             //error("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
+                            System.out.println("\t - failed.");
                         }
                         // if here - failed to read GridGraph and failed to load adjacency list
                         System.out.println("Try to load edge list");
@@ -303,10 +305,13 @@ public class SwingGeneralGUI extends JFrame {
                             drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
                             return;
                         } catch (IOException ex) {
+                            System.out.println("\t - failed.");
                             error("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
                             System.out.println("GRAPH NOT LOADED: " + ex.getLocalizedMessage());
+                            return;
                         }
                     }
+                    System.out.println("\t - success.");
                 }
             }
         });
@@ -390,10 +395,10 @@ public class SwingGeneralGUI extends JFrame {
         topPanel.add(scales, BorderLayout.SOUTH);
 
         JMenuBar menuBar = new JMenuBar();
-        
+
         JButton[] btns = {generateButton, redrawButton, deleteButton, saveButton, loadButton, exitButton};
-        
-        addToMenuBar(menuBar,"Graph", btns, currentFont);
+
+        addToMenuBar(menuBar, "Graph", btns, currentFont);
 
         menuBar.add(aM);
 
@@ -500,6 +505,7 @@ public class SwingGeneralGUI extends JFrame {
                                         mst = null;
                                         pathsAll = null;
                                         drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                                        System.out.println("Bellman-Ford" + " finished.");
                                     }
                                 };
                                 t.start();
@@ -521,6 +527,7 @@ public class SwingGeneralGUI extends JFrame {
                                         pathsSS = pathsAll.getSSPaths(nodeNum);
                                         mst = null;
                                         drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                                        System.out.println("Floyd-Warshall" + " finished.");
                                     }
                                 };
                                 t.start();
@@ -585,7 +592,8 @@ public class SwingGeneralGUI extends JFrame {
                                         }
                                         pathsSS = null;
                                         pathsAll = null;
-                                        drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                                        //drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                                        System.out.println("Prim" + " finished");
                                     }
                                 };
                                 t.start();
@@ -614,6 +622,7 @@ public class SwingGeneralGUI extends JFrame {
                                         }
                                         pathsSS = null;
                                         pathsAll = null;
+                                        System.out.println("Prim_CLRS" + " finished");
                                     }
                                 };
                                 t.start();
@@ -640,6 +649,7 @@ public class SwingGeneralGUI extends JFrame {
                                             pathsSS = null;
                                             pathsAll = null;
                                             drawGraph(canvas.getGraphics(), canvas.getWidth(), canvas.getHeight());
+                                            System.out.println("Kernighan-Lin" + " finished");
                                         }
                                     }
                                 };

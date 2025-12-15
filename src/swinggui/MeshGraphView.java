@@ -2,7 +2,7 @@ package swinggui;
 
 import fem.Util;
 import fem.mesh.IMesh;
-import graphs_old.Graph;
+import graphs.Graph;
 import java.awt.Point;
 
 /**
@@ -22,7 +22,7 @@ public class MeshGraphView implements GraphView {
     public MeshGraphView(IMesh mesh) {
         this.mesh = mesh;
         this.graph = Util.graphOfIMesh(mesh);
-        rc = new int[graph.getNumNodes()][2];
+        rc = new int[graph.maxVertexNo()+1][2];
     }
 
     @Override

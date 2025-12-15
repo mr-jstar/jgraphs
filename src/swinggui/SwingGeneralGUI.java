@@ -8,13 +8,13 @@ package swinggui;
  * @author jstar
  */
 import fem.mesh.IMesh;
-import graphs_old.AllToAllGraphPaths;
-import graphs_old.Edge;
-import graphs_old.Graph;
-import graphs_old.GraphAlgorithms;
-import graphs_old.GraphIO;
-import graphs_old.GridGraph;
-import graphs_old.SingleSourceGraphPaths;
+import graphs.AllToAllGraphPaths;
+import graphs.Edge;
+import graphs.Graph;
+import graphs.GraphAlgorithms;
+import graphs.GraphIO;
+import graphs.GridGraph;
+import graphs.SingleSourceGraphPaths;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -880,23 +880,23 @@ public class SwingGeneralGUI extends JFrame {
 
         gc.setColor(Color.BLACK);
         gc.fillRect(0, 0, width, height);
-        if (graph == null || graph.getNumNodes() < 1) {
+        if (graph == null || graph.getNumVertices() < 1) {
             return;
         } else {
-            //System.out.println("Drawing " + graph.getNumNodes() + " nodes.");
+            //System.out.println("Drawing " + graph.getNumVertices() + " nodes.");
         }
         gc.setColor(Color.GRAY);
         gc.setStroke(new BasicStroke(2));
         graphView.recalculateNodeCoordinates(width, height, BASICNODESIZE, leftSep, topSep);
 
-        for (int n = 0; n < graph.getNumNodes(); n++) {
+        for (int n = 0; n < graph.getNumVertices(); n++) {
             Set<Edge> edges = graph.getConnectionsList(n);
             for (Edge e : edges) {
                 Color c = edgeCM.getColorForValue(e.getWeight());
-                //System.out.println(e.getNodeA() + "--" + e.getNodeB() + " : " + e.getWeight() + "->" + c);
+                //System.out.println(e.getVertexA() + "--" + e.getVertexB() + " : " + e.getWeight() + "->" + c);
                 gc.setColor(c);
-                Point vA = graphView.getPosition(e.getNodeA());
-                Point vB = graphView.getPosition(e.getNodeB());
+                Point vA = graphView.getPosition(e.getVertexA());
+                Point vB = graphView.getPosition(e.getVertexB());
                 gc.drawLine(vA.x, vA.y, vB.x, vB.y);
             }
         }
@@ -904,7 +904,7 @@ public class SwingGeneralGUI extends JFrame {
         if (division.isEmpty()) {
             gc.setColor(Color.DARK_GRAY);
             int nodeSize = graphView.getNodeSize();
-            for (int p = 0; p < graph.getNumNodes(); p++) {
+            for (int p = 0; p < graph.getNumVertices(); p++) {
                 Point v = graphView.getPosition(p);
                 //System.out.println(p + "@(" + v + ") " + nodeSize);
                 gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
@@ -913,8 +913,8 @@ public class SwingGeneralGUI extends JFrame {
         } else {
             for (Edge e : division) {
                 gc.setColor(Color.BLACK);
-                Point vA = graphView.getPosition(e.getNodeA());
-                Point vB = graphView.getPosition(e.getNodeB());
+                Point vA = graphView.getPosition(e.getVertexA());
+                Point vB = graphView.getPosition(e.getVertexB());
                 gc.drawLine(vA.x, vA.y, vB.x, vB.y);
             }
             int nodeSize = graphView.getNodeSize();
@@ -937,7 +937,7 @@ public class SwingGeneralGUI extends JFrame {
         Graphics2D gc = (Graphics2D) g;
         gc.setColor(Color.BLACK);
         gc.fillRect(0, 0, width, height);
-        if (graph == null || mst == null || graph.getNumNodes() < 1) {
+        if (graph == null || mst == null || graph.getNumVertices() < 1) {
             return;
         }
         gc.setColor(Color.GRAY);
@@ -945,19 +945,19 @@ public class SwingGeneralGUI extends JFrame {
         gc.setStroke(new BasicStroke(2));
         graphView.recalculateNodeCoordinates(width, height, BASICNODESIZE, leftSep, topSep);
 
-        for (int n = 0; n < graph.getNumNodes(); n++) {
+        for (int n = 0; n < graph.getNumVertices(); n++) {
             Set<Edge> edges = mst.getConnectionsList(n);
             for (Edge e : edges) {
                 Color c = edgeCM.getColorForValue(e.getWeight());
-                //System.out.println(e.getNodeA() + "--" + e.getNodeB() + " : " + e.getWeight() + "->" + c);
+                //System.out.println(e.getVertexA() + "--" + e.getVertexB() + " : " + e.getWeight() + "->" + c);
                 gc.setColor(c);
-                Point vA = graphView.getPosition(e.getNodeA());
-                Point vB = graphView.getPosition(e.getNodeB());
+                Point vA = graphView.getPosition(e.getVertexA());
+                Point vB = graphView.getPosition(e.getVertexB());
                 gc.drawLine(vA.x, vA.y, vB.x, vB.y);
             }
         }
         int nodeSize = graphView.getNodeSize();
-        for (int p = 0; p < graph.getNumNodes(); p++) {
+        for (int p = 0; p < graph.getNumVertices(); p++) {
             Point v = graphView.getPosition(p);
             gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
         }
@@ -965,7 +965,7 @@ public class SwingGeneralGUI extends JFrame {
 
     private void colorNodes(Graphics g) {
         Graphics2D gc = (Graphics2D) g;
-        if (graph == null || graph.getNumNodes() < 1) {
+        if (graph == null || graph.getNumVertices() < 1) {
             return;
         }
         double[] colors = pathsSS.d;
@@ -973,7 +973,7 @@ public class SwingGeneralGUI extends JFrame {
         nodeColorMapLabel.setIcon(new ImageIcon(nodeCM.createColorScaleImage(300, 20, SwingConstants.HORIZONTAL)));
         nodeScaleViewLabel.setText(nodeScaleViewLabelTxt + String.format("%.3g", pathsSS.dMin) + " -- " + String.format("%.3g", pathsSS.dMax));
         int nodeSize = graphView.getNodeSize();
-        for (int p = 0; p < graph.getNumNodes(); p++) {
+        for (int p = 0; p < graph.getNumVertices(); p++) {
             Point v = graphView.getPosition(p);
             gc.setColor(nodeCM.getColorForValue(colors[p]));
             gc.fillOval(v.x - nodeSize / 2, v.y - nodeSize / 2, nodeSize, nodeSize);
@@ -982,7 +982,7 @@ public class SwingGeneralGUI extends JFrame {
 
     private void drawPath(Graphics g, ArrayList<Integer> path) {
         Graphics2D gc = (Graphics2D) g;
-        if (graph == null || graph.getNumNodes() < 1) {
+        if (graph == null || graph.getNumVertices() < 1) {
             return;
         }
         gc.setColor(Color.WHITE);

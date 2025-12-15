@@ -1,7 +1,7 @@
 package swinggui;
 
-import graphs_old.Graph;
-import graphs_old.GridGraph;
+import graphs.Graph;
+import graphs.GridGraph;
 import java.awt.Point;
 
 /**
@@ -20,7 +20,7 @@ public class GridGraphView implements GraphView {
 
     public GridGraphView(GridGraph graph) {
         this.graph = graph;
-        rc = new int[graph.getNumNodes()][2];
+        rc = new int[graph.getNumVertices()][2];
     }
     
     @Override
@@ -49,7 +49,7 @@ public class GridGraphView implements GraphView {
         this.nodeSize = (int) (nodeSep / 5.0);
         this.nodeSize = this.nodeSize < MINNODESIZE ? MINNODESIZE : this.nodeSize;
         System.out.println("Node size: " + this.nodeSize);
-        for (int n = 0; n < graph.getNumNodes(); n++) {
+        for (int n = 0; n < graph.getNumVertices(); n++) {
             rc[n][0] = n % rows;  // column
             rc[n][1] = n / rows;  // row
             //System.out.println(n + "-> r=" + rc[n][0] + " c=" + rc[n][1]);

@@ -1,8 +1,8 @@
 package swinggui;
 
-import graphs_old.Graph;
-import graphs_old.GraphAlgorithms;
-import graphs_old.SingleSourceGraphPaths;
+import graphs.Graph;
+import graphs.GraphAlgorithms;
+import graphs.SingleSourceGraphPaths;
 import java.awt.Point;
 import java.util.Random;
 import sparsematrices.EigenValues;
@@ -29,7 +29,7 @@ public class AnyGraphView implements GraphView {
 
     public AnyGraphView(Graph graph) {
         this.graph = graph;
-        rc = new int[graph.getNumNodes()][2];
+        rc = new int[graph.getNumVertices()][2];
     }
 
     public AnyGraphView(Graph graph, int vertexLocation) {
@@ -37,7 +37,7 @@ public class AnyGraphView implements GraphView {
         this.vertexLocation = vertexLocation;  // 0 - random,
                                                // 1 - GraphLaplacian -> first 2 eigenvectors -> (x,y)
                                                // 2 - boudary -> rectangular mesh transform
-        rc = new int[graph.getNumNodes()][2];
+        rc = new int[graph.maxVertexNo()+1][2];
     }
 
     @Override
@@ -76,7 +76,7 @@ public class AnyGraphView implements GraphView {
                     }
                     System.out.println();
 
-                    for (int v = 0; v < graph.getNumNodes(); v++) {
+                    for (Integer v : graph.getVerticesNumbers()) {
                         rc[v][0] = leftSep + (int) ((width - 2 * leftSep) * rand.nextDouble());
                         rc[v][1] = topSep + (int) ((height - 2 * topSep) * rand.nextDouble());
                     }
@@ -84,25 +84,25 @@ public class AnyGraphView implements GraphView {
                 case 1 -> {
                     SparseMatrix L = GraphAlgorithms.weightedLaplacian(graph);
                     //System.out.println(L);
-                    double[] x = new double[graph.getNumNodes()];
+                    double[] x = new double[graph.maxVertexNo()+1];
                     double[] y = new double[x.length];
                     EigenValues.powerIteration(L, 1e-6, x);
                     EigenValues.powerIterationSecondEigen(L, 1e-6, x, y);
                     System.out.println("x.y=" + EigenValues.dot(x, y));
-                    this.nodeSize = (int) (height / graph.getNumNodes());
+                    this.nodeSize = (int) (height / graph.getNumVertices());
                     this.nodeSize = this.nodeSize > MAX_NODE_SIZE ? MAX_NODE_SIZE : this.nodeSize;
                     this.nodeSize = this.nodeSize < MIN_NODE_SIZE ? MIN_NODE_SIZE : this.nodeSize;
                     leftSep = leftSep < 2 * nodeSize ? 2 * nodeSize : leftSep;
                     topSep = leftSep;
                     normalize(x);
                     normalize(y);
-                    for (int v = 0; v < graph.getNumNodes(); v++) {
+                    for (Integer v : graph.getVerticesNumbers()) {
                         rc[v][0] = leftSep + (int) ((width - 2 * leftSep) * x[v]);
                         rc[v][1] = topSep + (int) ((height - 2 * topSep) * y[v]);
                     }
                 }
                 case 0 -> {
-                    for (int v = 0; v < graph.getNumNodes(); v++) {
+                    for (Integer v : graph.getVerticesNumbers()) {
                         rc[v][0] = leftSep + (int) ((width - 2 * leftSep) * rand.nextDouble());
                         rc[v][1] = topSep + (int) ((height - 2 * topSep) * rand.nextDouble());
                     }
@@ -111,7 +111,7 @@ public class AnyGraphView implements GraphView {
         } else {
             double w_ratio = (double) width / last_width;
             double h_ratio = (double) height / last_height;
-            for (int v = 0; v < graph.getNumNodes(); v++) {
+            for (int v = 0; v < graph.getNumVertices(); v++) {
                 rc[v][0] = (int) (rc[v][0] * w_ratio);
                 rc[v][1] = (int) (rc[v][1] * h_ratio);
             }
@@ -140,7 +140,7 @@ public class AnyGraphView implements GraphView {
     public int getNodeNum(int x, int y) {
         int i = -1;
         double d2 = Double.POSITIVE_INFINITY;
-        for (int v = 0; v < graph.getNumNodes(); v++) {
+        for (Integer v : graph.getVerticesNumbers()) {
             double cd2 = (x - rc[v][0]) * (x - rc[v][0]) + (y - rc[v][1]) * (y - rc[v][1]);
             if (cd2 < d2) {
                 d2 = cd2;

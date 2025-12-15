@@ -1,6 +1,6 @@
 package swinggui;
 
-import graphs_old.Graph;
+import graphs.Graph;
 import java.awt.Point;
 
 /**

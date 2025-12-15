@@ -6,9 +6,9 @@ import fem.mesh.Mesh;
 import fem.mesh.Segment;
 import fem.mesh.Triangle;
 import fem.mesh.Vertex;
-import graphs_old.Edge;
-import graphs_old.Graph;
-import graphs_old.ModifiableGraph;
+import graphs.Edge;
+import graphs.Graph;
+import graphs.ModifiableGraph;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -139,7 +139,7 @@ public class Util {
     public static Graph graphOfIMesh( IMesh mesh ) {
         ModifiableGraph g = new ModifiableGraph();
         for( int v = 0; v < mesh.getNoVertices(); v++ )
-            g.addNode(v);
+            g.addVertex(v);
         Set<Edge> edges = new HashSet<>();
         for( int e = 0; e < mesh.getNoElems(); e++ ) {
             int [] vs = mesh.getElem(e).getVertices();

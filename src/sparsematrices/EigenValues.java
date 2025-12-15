@@ -46,7 +46,7 @@ public class EigenValues {
             // przepisz
             System.arraycopy(y, 0, x, 0, n);
             lambda = lambdaNew;
-            System.out.println("it " + iter + ": " + lambda);
+            //System.out.println("it " + iter + ": " + lambda);
 
             if (Math.sqrt(diff) < tol) {
                 break;
@@ -99,7 +99,7 @@ public class EigenValues {
 
             System.arraycopy(y, 0, x, 0, n);
             lambda = lambdaNew;
-            System.out.println("it " + iter + ": " + lambda);
+            //System.out.println("it " + iter + ": " + lambda);
 
             if (Math.sqrt(diff) < tol) {
                 break;

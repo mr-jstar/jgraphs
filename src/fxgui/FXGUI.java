@@ -1,12 +1,12 @@
 package fxgui;
 
-import graphs.AllToAllGraphPaths;
-import graphs.Graph;
-import graphs.GridGraph;
-import graphs.Edge;
-import graphs.SingleSourceGraphPaths;
-import graphs.GraphAlgorithms;
-import graphs.GraphIO;
+import graphs_old.AllToAllGraphPaths;
+import graphs_old.Graph;
+import graphs_old.GridGraph;
+import graphs_old.Edge;
+import graphs_old.SingleSourceGraphPaths;
+import graphs_old.GraphAlgorithms;
+import graphs_old.GraphIO;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;

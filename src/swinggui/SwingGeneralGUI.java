@@ -8,13 +8,13 @@ package swinggui;
  * @author jstar
  */
 import fem.mesh.IMesh;
-import graphs.AllToAllGraphPaths;
-import graphs.Edge;
-import graphs.Graph;
-import graphs.GraphAlgorithms;
-import graphs.GraphIO;
-import graphs.GridGraph;
-import graphs.SingleSourceGraphPaths;
+import graphs_old.AllToAllGraphPaths;
+import graphs_old.Edge;
+import graphs_old.Graph;
+import graphs_old.GraphAlgorithms;
+import graphs_old.GraphIO;
+import graphs_old.GridGraph;
+import graphs_old.SingleSourceGraphPaths;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;

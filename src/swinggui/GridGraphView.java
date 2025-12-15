@@ -1,7 +1,7 @@
 package swinggui;
 
-import graphs.Graph;
-import graphs.GridGraph;
+import graphs_old.Graph;
+import graphs_old.GridGraph;
 import java.awt.Point;
 
 /**

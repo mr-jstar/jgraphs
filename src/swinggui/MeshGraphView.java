@@ -2,7 +2,7 @@ package swinggui;
 
 import fem.Util;
 import fem.mesh.IMesh;
-import graphs.Graph;
+import graphs_old.Graph;
 import java.awt.Point;
 
 /**

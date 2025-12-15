@@ -1,8 +1,8 @@
 package swinggui;
 
-import graphs.Graph;
-import graphs.GraphAlgorithms;
-import graphs.SingleSourceGraphPaths;
+import graphs_old.Graph;
+import graphs_old.GraphAlgorithms;
+import graphs_old.SingleSourceGraphPaths;
 import java.awt.Point;
 import java.util.Random;
 import sparsematrices.EigenValues;

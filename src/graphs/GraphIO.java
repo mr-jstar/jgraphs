@@ -18,13 +18,13 @@ public class GraphIO {
         // <n_nodes>
         // <node_to> <weight> ...
         // ...
-        pw.println(g.getNumNodes());
-        for (int i = 0; i < g.getNumNodes(); i++) {
-            HashSet<Edge> edges = g.getConnectionsList(i);
+        pw.println(g.getNumVertices());
+        for (Integer v : g.getVerticesNumbers() ) {
+            HashSet<Edge> edges = g.getConnectionsList(v);
             pw.print("\t");
             if (edges != null) {
                 for (Edge e : edges) {
-                    pw.print(" " + e.getNodeB() + " :" + e.getWeight() + " ");
+                    pw.print(" " + e.getVertexB() + " :" + e.getWeight() + " ");
                 }
             }
             pw.println();
@@ -67,7 +67,7 @@ public class GraphIO {
             String[] words = br.readLine().split("\\s*");
             int nNodes = Integer.parseInt(words[0]);
             for (int i = 0; i < nNodes; i++) {
-                g.addNode(i);
+                g.addVertex(i);
                 words = br.readLine().split("[\\s:]*");
                 for (int j = 0; j < words.length; j += 2) {
                     g.addEdge(i, Integer.parseInt(words[j]), Double.parseDouble(words[j + 1]));
@@ -143,7 +143,7 @@ public class GraphIO {
             pw.print("\t");
             if (edges != null) {
                 for (Edge e : edges) {
-                    pw.print(" " + e.getNodeB() + " :" + e.getWeight() + " ");
+                    pw.print(" " + e.getVertexB() + " :" + e.getWeight() + " ");
                 }
             }
             pw.println();

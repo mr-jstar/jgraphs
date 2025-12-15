@@ -1,5 +1,10 @@
 package graphs;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Reader;
 import java.util.*;
 
 import java.text.DecimalFormat;
@@ -112,19 +117,20 @@ public class GraphAlgorithms {
     }
 
     public static boolean valid(Graph g, int startNode) {
-        if (g == null || g.getNumNodes() < 1 || startNode < 0 || startNode >= g.getNumNodes()) {
-            return false;
-        }
-        for (int currentNode = 0; currentNode < g.getNumNodes(); currentNode++) {
-            for (Edge e : g.getConnectionsList(currentNode)) {
-                if (e.getNodeA() != currentNode) {
-                    lastError = "bfs: graph given as argument is not valid: edge starting from node " + currentNode + " has first node == " + e.getNodeA() + " instead of " + currentNode;
-                    return false;
+        if (g != null && g.hasVertex(startNode)) {
+            for (int currentNode = 0; currentNode < g.getNumVertices(); currentNode++) {
+                for (Edge e : g.getConnectionsList(currentNode)) {
+                    if (e.getVertexA() != currentNode) {
+                        lastError = "bfs: graph given as argument is not valid: edge starting from node " + currentNode + " has first node == " + e.getVertexA() + " instead of " + currentNode;
+                        return false;
+                    }
                 }
             }
-        }
 
-        return true;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public static double weightSum(Graph g) {
@@ -138,28 +144,29 @@ public class GraphAlgorithms {
     public static Graph prim(Graph g) {
         PriorityQueue<Edge> pq = new PriorityQueue<>();
         ModifiableGraph mst = new ModifiableGraph();
-        boolean[] inMST = new boolean[g.getNumNodes()];
+        Set<Integer> vertices = g.getVerticesNumbers();
+        boolean[] inMST = new boolean[g.maxVertexNo() + 1];
         Arrays.fill(inMST, false);
-        mst.addNode(0);
+        mst.addVertex(vertices.iterator().next());
         inMST[0] = true;
         for (Edge e : g.getConnectionsList(0)) {
             pq.add(e);
         }
-        while (!pq.isEmpty() && mst.getNumNodes() < g.getNumNodes()) {
-            //System.out.println( "Prim: |V.mst|="+mst.getNumNodes()+"  |PQ|="+pq.size());
+        while (!pq.isEmpty() && mst.getNumVertices() < g.getNumVertices()) {
+            //System.out.println( "Prim: |V.mst|="+mst.getNumVertices()+"  |PQ|="+pq.size());
             Edge se = pq.poll();
-            int nA = se.getNodeA();
-            int nB = se.getNodeB();
+            int nA = se.getVertexA();
+            int nB = se.getVertexB();
             //System.out.println( "Edge " + nA + "-" + nB + " inMST(" + nA + ")=" + inMST[nA] + " inMST(" + nB + ")=" + inMST[nB] );
             if (inMST[nA] && !inMST[nB]) {
-                mst.addNode(nB);
+                mst.addVertex(nB);
                 inMST[nB] = true;
                 mst.addEdge(nA, nB, se.getWeight());
                 for (Edge e : g.getConnectionsList(nB)) {
                     pq.add(e);
                 }
             } else if (!inMST[nA] && inMST[nB]) {
-                mst.addNode(nA);
+                mst.addVertex(nA);
                 inMST[nA] = true;
                 mst.addEdge(nB, nA, se.getWeight());
                 for (Edge e : g.getConnectionsList(nA)) {
@@ -172,18 +179,18 @@ public class GraphAlgorithms {
     }
 
     public static Graph classical_prim(Graph g) {
-        double[] cheapest = new double[g.getNumNodes()];
+        double[] cheapest = new double[g.maxVertexNo() + 1];
         Arrays.fill(cheapest, Double.POSITIVE_INFINITY);
         HeapPQ pq = new HeapPQ(cheapest);
-        Edge[] connection = new Edge[g.getNumNodes()];
+        Edge[] connection = new Edge[g.maxVertexNo() + 1];
         Arrays.fill(connection, null);
-        boolean[] inMST = new boolean[g.getNumNodes()];
+        boolean[] inMST = new boolean[g.maxVertexNo() + 1];
         Arrays.fill(inMST, false);
         ModifiableGraph mst = new ModifiableGraph();
         pq.add(0, 0.0);
         while (!pq.isEmpty()) {
             int u = pq.poll();
-            mst.addNode(u);
+            mst.addVertex(u);
             inMST[u] = true;
             if (connection[u] != null) {
                 mst.addEdge(connection[u]);
@@ -191,9 +198,9 @@ public class GraphAlgorithms {
             //System.out.println("Added " + u);
             for (Edge e : g.getConnectionsList(u)) {
                 //System.out.println(e);
-                int v = e.getNodeA();
+                int v = e.getVertexA();
                 if (v == u) {
-                    v = e.getNodeB();
+                    v = e.getVertexB();
                 }
                 if (!inMST[v] && e.getWeight() < cheapest[v]) {
                     cheapest[v] = e.getWeight();
@@ -227,7 +234,7 @@ public class GraphAlgorithms {
             nTrees++;
         }
 
-        public int getTreeWithNode(int node) {
+        public int getTreeWithVertex(int node) {
             return node2TreeMap[node];
         }
 
@@ -259,23 +266,23 @@ public class GraphAlgorithms {
 
     public static Graph kruskal(Graph g) {
         PriorityQueue<Edge> pq = new PriorityQueue<>();
-        Forest forest = new Forest(g.getNumNodes());
-        for (int i = 0; i < g.getNumNodes(); i++) {
+        Forest forest = new Forest(g.maxVertexNo() + 1);
+        for (Integer v : g.getVerticesNumbers()) {
             ModifiableGraph t = new ModifiableGraph();
-            t.addNode(i);
+            t.addVertex(v);
             forest.add(t);
-            for (Edge e : g.getConnectionsList(i)) {
+            for (Edge e : g.getConnectionsList(v)) {
                 pq.add(e);
             }
         }
 
         while (!pq.isEmpty() && forest.size() > 1) {
             Edge se = pq.poll();
-            int nA = se.getNodeA();
-            int nB = se.getNodeB();
+            int nA = se.getVertexA();
+            int nB = se.getVertexB();
 
-            int iA = forest.getTreeWithNode(nA);
-            int iB = forest.getTreeWithNode(nB);
+            int iA = forest.getTreeWithVertex(nA);
+            int iB = forest.getTreeWithVertex(nB);
 
             //System.out.println("Edge " + se + "  iA=" + iA + "  iB=" + iB);
             if (iA != iB) {
@@ -287,22 +294,21 @@ public class GraphAlgorithms {
                 //System.out.println(forest);
             }
         }
-        Graph mst = forest.get(forest.getTreeWithNode(0));
+        Graph mst = forest.get(forest.getTreeWithVertex(0));
         System.out.println("Total weight " + weightSum(mst));
         return mst;
     }
 
     public static SingleSourceGraphPaths bfs(Graph g, int startNode) {
-        if (g == null || g.getNumNodes() < 1 || startNode < 0 || startNode >= g.getNumNodes()) {
+        if (g == null || !g.hasVertex(startNode)) {
             return null;
         }
-        int[] p = new int[g.getNumNodes()];
-        double[] d = new double[g.getNumNodes()];
+        int[] p = new int[g.maxVertexNo() + 1];
+        double[] d = new double[p.length];
+        int[] c = new int[p.length];
         java.util.Arrays.fill(d, -1);    // distance equal -1 marks node which is not connected to the start node
         java.util.Arrays.fill(p, -1);    //  same is valid for precedessor
-
-        int[] c = new int[g.getNumNodes()];
-        java.util.Arrays.fill(c, WHITE);
+        java.util.Arrays.fill(c, WHITE); // color: WHITE, GREY, BLACK = "not processed","in processing","finished"
 
         c[startNode] = GRAY;
         d[startNode] = 0;
@@ -313,7 +319,7 @@ public class GraphAlgorithms {
         while (!fifo.isEmpty()) {
             currentNode = fifo.pop();
             for (Edge e : g.getConnectionsList(currentNode)) {
-                int n = e.getNodeB() == currentNode ? e.getNodeA() : e.getNodeB();
+                int n = e.getVertexB() == currentNode ? e.getVertexA() : e.getVertexB();
                 if (c[n] == WHITE) {
                     c[n] = GRAY;
                     p[n] = currentNode;
@@ -328,24 +334,24 @@ public class GraphAlgorithms {
     }
 
     public static SingleSourceGraphPaths dfs(Graph g) {
-        if (g == null || g.getNumNodes() < 1) {
+        if (g == null || g.getNumVertices() < 1) {
             return null;
         }
-        int[] d = new int[g.getNumNodes()];
-        int[] f = new int[g.getNumNodes()];
-        int[] p = new int[g.getNumNodes()];
+        int[] d = new int[g.maxVertexNo() + 1];
+        int[] f = new int[d.length];
+        int[] p = new int[d.length];
         java.util.Arrays.fill(d, -1);    // discovery "time"  -1 means "not visited"
         java.util.Arrays.fill(f, -1);    // finish "time"
         java.util.Arrays.fill(p, -1);    // parent
 
-        int[] c = new int[g.getNumNodes()];
+        int[] c = new int[g.maxVertexNo() + 1]; // color: WHITE, GREY, BLACK = "not processed","in processing","finished" 
         java.util.Arrays.fill(c, WHITE);
 
         try {
-            for (int n = 0; n < g.getNumNodes(); n++) {
-                if (c[n] == WHITE) {
-                    d[n] = 0;
-                    dfs_visit(g, n, d, f, p, c, 0);
+            for (Integer v : g.getVerticesNumbers()) {
+                if (c[v] == WHITE) {
+                    d[v] = 0;
+                    dfs_visit(g, v, d, f, p, c, 0);
                 }
             }
         } catch (StackOverflowError e) {
@@ -360,7 +366,7 @@ public class GraphAlgorithms {
         c[currentNode] = GRAY;
         d[currentNode] = time;
         for (Edge e : g.getConnectionsList(currentNode)) {
-            int n = e.getNodeB();
+            int n = e.getVertexB();
             if (c[n] == WHITE) {
                 p[n] = currentNode;
                 dfs_visit(g, n, d, f, p, c, time + 1);
@@ -371,22 +377,22 @@ public class GraphAlgorithms {
     }
 
     public static SingleSourceGraphPaths dfs_iterative(Graph g) {
-        if (g == null || g.getNumNodes() < 1) {
+        if (g == null || g.getNumVertices() < 1) {
             return null;
         }
-        int[] d = new int[g.getNumNodes()];
-        int[] f = new int[g.getNumNodes()];
-        int[] p = new int[g.getNumNodes()];
+        int[] d = new int[g.maxVertexNo()+1];
+        int[] f = new int[d.length];
+        int[] p = new int[d.length];
         java.util.Arrays.fill(d, -1);    // discovery "time"  -1 means "not visited"
         java.util.Arrays.fill(f, -1);    // finish "time"
         java.util.Arrays.fill(p, -1);    // parent
 
-        int[] c = new int[g.getNumNodes()];
+        int[] c = new int[d.length]; // color: WHITE, GREY, BLACK = "not processed","in processing","finished"
         java.util.Arrays.fill(c, WHITE);
 
         int time = 0;
         java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();
-        for (int n = 0; n < g.getNumNodes(); n++) {
+        for (Integer n : g.getVerticesNumbers()) {
             if (c[n] == WHITE) {
                 time = 0;
                 c[n] = GRAY;
@@ -396,7 +402,7 @@ public class GraphAlgorithms {
                     int currentNode = stack.pop();
                     boolean isFinished = true;
                     for (Edge e : g.getConnectionsList(currentNode)) {
-                        int neighbour = e.getNodeB();
+                        int neighbour = e.getVertexB();
                         if (c[neighbour] == WHITE) {
                             c[neighbour] = GRAY;
                             p[neighbour] = currentNode;
@@ -422,12 +428,12 @@ public class GraphAlgorithms {
     }
 
     public static SingleSourceGraphPaths dijkstra(Graph g, int startNode) {
-        if (g == null || g.getNumNodes() < 1 || startNode < 0 || startNode >= g.getNumNodes()) {
+        if (g == null || ! g.hasVertex(startNode)) {
             return null;
         }
         //System.out.println("Dijkstra, source=" + startNode);
-        int[] p = new int[g.getNumNodes()];
-        double[] d = new double[g.getNumNodes()];
+        int[] p = new int[g.maxVertexNo()+1];
+        double[] d = new double[p.length];
         java.util.Arrays.fill(d, Double.POSITIVE_INFINITY);
         java.util.Arrays.fill(p, -1);
 
@@ -439,13 +445,13 @@ public class GraphAlgorithms {
             currentNode = queue.poll();
             //System.out.println("current: " + currentNode);
             for (Edge e : g.getConnectionsList(currentNode)) {
-                int n = e.getNodeB();
+                int n = e.getVertexB();
                 //System.out.print("\t" + n + ": ");
                 if (d[n] > d[currentNode] + e.getWeight()) {
                     //System.out.print(d[n] + "->" + (d[currentNode] + e.getWeight()));
                     d[n] = d[currentNode] + e.getWeight();
                     queue.update(n, d[n]);
-                    p[e.getNodeB()] = currentNode;
+                    p[e.getVertexB()] = currentNode;
                 }
                 //System.out.println();
             }
@@ -455,11 +461,11 @@ public class GraphAlgorithms {
     }
 
     public static SingleSourceGraphPaths bellmanFord(Graph g, int startNode) {
-        if (g == null || g.getNumNodes() < 1 || startNode < 0 || startNode >= g.getNumNodes()) {
+        if (g == null || ! g.hasVertex(startNode)) {
             return null;
         }
         //System.out.println("Dijkstra, source=" + startNode);
-        int nn = g.getNumNodes();
+        int nn = g.maxVertexNo()+1;
         int[] p = new int[nn];
         double[] d = new double[nn];
         java.util.Arrays.fill(d, Double.POSITIVE_INFINITY);
@@ -468,10 +474,10 @@ public class GraphAlgorithms {
         p[startNode] = -1;  // made by Arrays.fill, repeated here for clarity
         d[startNode] = 0;
         Set<Edge> allEdges = g.getAllEdges();
-        for (int i = 0; i < nn; i++) {
+        for (Integer v : g.getVerticesNumbers()) { // as many repetitions as vertces
             for (Edge e : allEdges) {
-                int nA = e.getNodeA();
-                int nB = e.getNodeB();
+                int nA = e.getVertexA();
+                int nB = e.getVertexB();
                 double w = e.getWeight();
                 if (d[nA] > d[nB] + w) {
                     d[nA] = d[nB] + w;
@@ -506,33 +512,34 @@ public class GraphAlgorithms {
     }
 
     public static AllToAllGraphPaths floydWarshall(Graph g) {
-        if (g == null || g.getNumNodes() < 1) {
+        if (g == null || g.getNumVertices() < 1) {
             return null;
         }
 
-        int nn = g.getNumNodes();
+        int nn = g.maxVertexNo()+1;
         int[][] p = new int[nn][nn];
         double[][] d = new double[nn][nn];
         for (int i = 0; i < nn; i++) {
             java.util.Arrays.fill(d[i], Double.POSITIVE_INFINITY);
             java.util.Arrays.fill(p[i], -1);
         }
-        for (int i = 0; i < nn; i++) {
+        Set<Integer> vertices = g.getVerticesNumbers();
+        for (Integer i : vertices ) {
             d[i][i] = 0;
         }
         Set<Edge> allEdges = g.getAllEdges();
         for (Edge e : allEdges) {
-            int nA = e.getNodeA();
-            int nB = e.getNodeB();
+            int nA = e.getVertexA();
+            int nB = e.getVertexB();
             double w = e.getWeight();
             d[nA][nB] = d[nB][nA] = w;
             p[nA][nB] = nA;
             p[nB][nA] = nB;
         }
 
-        for (int m = 0; m < nn; m++) {
-            for (int src = 0; src < nn; src++) {
-                for (int dst = 0; dst < nn; dst++) {
+        for (Integer m : vertices) {
+            for (Integer src : vertices ) {
+                for (Integer dst : vertices ) {
                     if (d[src][dst] > d[src][m] + d[m][dst]) {
                         d[src][dst] = d[src][m] + d[m][dst];
                         p[src][dst] = p[m][dst];
@@ -546,20 +553,21 @@ public class GraphAlgorithms {
 
     public static List<List<Edge>> partition_Kernighan_Lin(Graph graph, int startNode, int iter_limit) {
         Set<Integer> A = new HashSet<>(), B = new HashSet<>();
-        List<Set<Integer>> neighbours = new ArrayList<>(graph.getNumNodes());
-        for (int i = 0; i < graph.getNumNodes(); i++) {
+        List<Set<Integer>> neighbours = new ArrayList<>(graph.getNumVertices());
+        Set<Integer> vertices = graph.getVerticesNumbers();
+        for (Integer i : vertices) {
             neighbours.add(graph.getNeighbours(i));
         }
 
         // Inicjalny podział węzłów wg odległości od węzła startNode
         SingleSourceGraphPaths p0 = dijkstra(graph, startNode);
         if (p0 == null) {
-            System.err.println("Can't find shortest paths from node #" + startNode + " of " + graph.getNumNodes());
+            System.err.println("Can't find shortest paths from node #" + startNode + " of " + graph.getNumVertices());
             Thread.currentThread().interrupt();
             return null;
         }
         List<Integer> nodeList = new ArrayList<>();
-        for (int i = 0; i < graph.getNumNodes(); i++) {
+        for (Integer i : vertices) {
             nodeList.add(i);
         }
         nodeList.sort((Integer i, Integer j) -> p0.d[i] < p0.d[j] ? -1 : (p0.d[i] == p0.d[j] ? 0 : 1));
@@ -574,7 +582,7 @@ public class GraphAlgorithms {
             //System.err.println("A: " + A);
             //System.err.println("B: " + B);
             improvement = false;
-            List<Swap> swaps = new ArrayList<>();
+            List<vertexA> swaps = new ArrayList<>();
 
             // Oblicz D dla każdego węzła
             Map<Integer, Double> D = calculateD(graph, A, B);
@@ -584,18 +592,18 @@ public class GraphAlgorithms {
             Set<Integer> usedB = new HashSet<>();
 
             while (usedA.size() < A.size() && usedB.size() < B.size()) {
-                Swap bestSwap = findBestSwap(graph, A, B, D, usedA, usedB, neighbours);
+                vertexA bestSwap = findBestSwap(graph, A, B, D, usedA, usedB, neighbours);
                 if (bestSwap == null) {
                     break;
                 }
                 //System.err.println("Best swap: " + bestSwap);
                 swaps.add(bestSwap);
-                usedA.add(bestSwap.nodeA);
-                usedB.add(bestSwap.nodeB);
+                usedA.add(bestSwap.vertexA);
+                usedB.add(bestSwap.vertexB);
 
                 // Aktualizacja D po każdej zamianie
-                D.put(bestSwap.nodeA, D.get(bestSwap.nodeA) - bestSwap.gain);
-                D.put(bestSwap.nodeB, D.get(bestSwap.nodeB) - bestSwap.gain);
+                D.put(bestSwap.vertexA, D.get(bestSwap.vertexA) - bestSwap.gain);
+                D.put(bestSwap.vertexB, D.get(bestSwap.vertexB) - bestSwap.gain);
 
                 if (Thread.currentThread().isInterrupted()) {
                     return null;
@@ -619,10 +627,10 @@ public class GraphAlgorithms {
                 //System.out.println("Max Gain: " + maxGain);
                 //System.out.println("Swaps: " + swaps);
                 for (int i = 0; i <= maxIndex; i++) {
-                    A.remove(swaps.get(i).nodeA);
-                    B.remove(swaps.get(i).nodeB);
-                    A.add(swaps.get(i).nodeB);
-                    B.add(swaps.get(i).nodeA);
+                    A.remove(swaps.get(i).vertexA);
+                    B.remove(swaps.get(i).vertexB);
+                    A.add(swaps.get(i).vertexB);
+                    B.add(swaps.get(i).vertexA);
                 }
             }
             if (++nit > iter_limit) {
@@ -634,9 +642,9 @@ public class GraphAlgorithms {
         // Tworzenie dwóch grafów na podstawie podziału
         List<Edge> edgesA = new ArrayList<>(), edgesB = new ArrayList<>(), edgesCut = new ArrayList<>();
         for (Edge edge : graph) {
-            if (A.contains(edge.getNodeA()) && A.contains(edge.getNodeB())) {
+            if (A.contains(edge.getVertexA()) && A.contains(edge.getVertexB())) {
                 edgesA.add(edge);
-            } else if (B.contains(edge.getNodeA()) && B.contains(edge.getNodeB())) {
+            } else if (B.contains(edge.getVertexA()) && B.contains(edge.getVertexB())) {
                 edgesB.add(edge);
             } else {
                 edgesCut.add(edge);
@@ -660,22 +668,22 @@ public class GraphAlgorithms {
         }
 
         for (Edge edge : graph) {
-            if (A.contains(edge.getNodeA()) && B.contains(edge.getNodeB())
-                    || A.contains(edge.getNodeB()) && B.contains(edge.getNodeA())) {
+            if (A.contains(edge.getVertexA()) && B.contains(edge.getVertexB())
+                    || A.contains(edge.getVertexB()) && B.contains(edge.getVertexA())) {
                 // koszt zewnętrzny
-                D.put(edge.getNodeA(), D.get(edge.getNodeA()) + edge.getWeight());
-                D.put(edge.getNodeB(), D.get(edge.getNodeB()) + edge.getWeight());
+                D.put(edge.getVertexA(), D.get(edge.getVertexA()) + edge.getWeight());
+                D.put(edge.getVertexB(), D.get(edge.getVertexB()) + edge.getWeight());
             } else {
                 // koszt wewnętrzny
-                D.put(edge.getNodeA(), D.get(edge.getNodeA()) - edge.getWeight());
-                D.put(edge.getNodeB(), D.get(edge.getNodeB()) - edge.getWeight());
+                D.put(edge.getVertexA(), D.get(edge.getVertexA()) - edge.getWeight());
+                D.put(edge.getVertexB(), D.get(edge.getVertexB()) - edge.getWeight());
             }
         }
         return D;
     }
 
-    private static Swap findBestSwap(Graph graph, Set<Integer> A, Set<Integer> B, Map<Integer, Double> D, Set<Integer> usedA, Set<Integer> usedB, List<Set<Integer>> neighbours) {
-        Swap bestSwap = null;
+    private static vertexA findBestSwap(Graph graph, Set<Integer> A, Set<Integer> B, Map<Integer, Double> D, Set<Integer> usedA, Set<Integer> usedB, List<Set<Integer>> neighbours) {
+        vertexA bestSwap = null;
         double maxGain = Double.NEGATIVE_INFINITY;
 
         for (Integer a : A) {
@@ -689,8 +697,8 @@ public class GraphAlgorithms {
 
                 double edgeWeight = 0;
                 for (Edge edge : graph.getConnectionsList(b)) {
-                    if ((edge.getNodeA() == a && edge.getNodeB() == b)
-                            || (edge.getNodeB() == a && edge.getNodeA() == b)) {
+                    if ((edge.getVertexA() == a && edge.getVertexB() == b)
+                            || (edge.getVertexB() == a && edge.getVertexA() == b)) {
                         edgeWeight = edge.getWeight();
                         break;
                     }
@@ -698,15 +706,15 @@ public class GraphAlgorithms {
                 double gain = D.get(a) + D.get(b) - 2 * edgeWeight;
                 if (gain > maxGain) {
                     maxGain = gain;
-                    bestSwap = new Swap(a, b, gain);
+                    bestSwap = new vertexA(a, b, gain);
                 }
             }
         }
         return bestSwap;
     }
 
-    private static Swap findBestSwapSlowly(Graph graph, Set<Integer> A, Set<Integer> B, Map<Integer, Double> D, Set<Integer> usedA, Set<Integer> usedB) {
-        Swap bestSwap = null;
+    private static vertexA findBestSwapSlowly(Graph graph, Set<Integer> A, Set<Integer> B, Map<Integer, Double> D, Set<Integer> usedA, Set<Integer> usedB) {
+        vertexA bestSwap = null;
         double maxGain = Double.NEGATIVE_INFINITY;
 
         for (Integer a : A) {
@@ -720,8 +728,8 @@ public class GraphAlgorithms {
 
                 double edgeWeight = 0;
                 for (Edge edge : graph.getConnectionsList(b)) {
-                    if ((edge.getNodeA() == a && edge.getNodeB() == b)
-                            || (edge.getNodeB() == a && edge.getNodeA() == b)) {
+                    if ((edge.getVertexA() == a && edge.getVertexB() == b)
+                            || (edge.getVertexB() == a && edge.getVertexA() == b)) {
                         edgeWeight = edge.getWeight();
                         break;
                     }
@@ -729,40 +737,141 @@ public class GraphAlgorithms {
                 double gain = D.get(a) + D.get(b) - 2 * edgeWeight;
                 if (gain > maxGain) {
                     maxGain = gain;
-                    bestSwap = new Swap(a, b, gain);
+                    bestSwap = new vertexA(a, b, gain);
                 }
             }
         }
         return bestSwap;
     }
 
-    private static class Swap {
+    private static class vertexA {
 
-        Integer nodeA, nodeB;
+        Integer vertexA, vertexB;
         double gain;
 
-        Swap(Integer nodeA, Integer nodeB, double gain) {
-            this.nodeA = nodeA;
-            this.nodeB = nodeB;
+        vertexA(Integer vA, Integer vB, double gain) {
+            this.vertexA = vA;
+            this.vertexB = vB;
             this.gain = gain;
         }
 
         @Override
         public String toString() {
-            return nodeA + "<->" + nodeB + " : " + gain;
+            return vertexA + "<->" + vertexB + " : " + gain;
         }
     }
 
+    public static SparseMatrix laplacian(Graph g) {
+        Integer[] indexToVertex = g.getVerticesNumbers().toArray(new Integer[0]);
+        Arrays.sort(indexToVertex);
+        for (Integer v : indexToVertex) {
+            System.err.print(v + " ");
+        }
+        System.err.println();
+
+        Map<Integer, Integer> vertexToIndex = new HashMap<>();
+        for (int i = 0; i < indexToVertex.length; i++) {
+            vertexToIndex.put(indexToVertex[i], i);
+        }
+
+        for (Integer v : vertexToIndex.keySet()) {
+            System.err.print(v + "->" + vertexToIndex.get(v) + " ");
+        }
+        System.err.println();
+
+        HashMapSparseMatrix L = new HashMapSparseMatrix(indexToVertex.length);
+        for (int i = 0; i < indexToVertex.length; i++) {
+            Set<Integer> neighbours = g.getNeighbours(indexToVertex[i]);
+            L.set(i, i, neighbours.size());
+            for (Integer v : neighbours) {
+                L.set(i, vertexToIndex.get(v), -1);
+                L.set(vertexToIndex.get(v), i, -1);
+            }
+        }
+        return L.toCRSsorted();
+    }
+
+    public static SparseMatrix weightedLaplacian(Graph g) {
+        Integer[] indexToVertex = g.getVerticesNumbers().toArray(new Integer[0]);
+        Arrays.sort(indexToVertex);
+        /*
+        for (Integer v : indexToVertex) {
+            System.err.print(v + " ");
+        }
+        System.err.println();
+         */
+        Map<Integer, Integer> vertexToIndex = new HashMap<>();
+        for (int i = 0; i < indexToVertex.length; i++) {
+            vertexToIndex.put(indexToVertex[i], i);
+        }
+
+        /*
+        for (Integer v : vertexToIndex.keySet()) {
+            System.err.print(v + "->" + vertexToIndex.get(v) + " ");
+        }
+        System.err.println();
+         */
+        HashMapSparseMatrix L = new HashMapSparseMatrix(indexToVertex.length);
+        for (int i = 0; i < indexToVertex.length; i++) {
+            Set<Edge> edges = g.getConnectionsList(indexToVertex[i]);
+            double diag = 0.0;
+            for (Edge e : edges) {
+                diag += e.getWeight();
+            }
+            L.set(i, i, diag);
+        }
+        Set<Edge> es = g.getAllEdges();
+        for (Edge e : es) {
+            Integer iA = vertexToIndex.get(e.getVertexA());
+            Integer iB = vertexToIndex.get(e.getVertexB());
+            double w = -e.getWeight();
+            L.set(iA, iB, w);
+            L.set(iB, iA, w);
+        }
+        return L.toCRSsorted();
+    }
+
+    public record VectorPair(double[] x, double[] y) {
+
+    }
+
+    public static VectorPair vertexCoordinates(Graph g) {
+        int n = g.getNumVertices();
+        double[] x = new double[n];
+        double[] y = new double[n];
+        Graph bnd = GraphAlgorithms.boundary(g);
+        System.out.println(bnd);
+        //SingleSourceGraphPaths p = GraphAlgorithms.bfs(bnd,GraphAlgorithms.initialV(graph));
+        SingleSourceGraphPaths p = GraphAlgorithms.dfs(bnd);
+        System.out.println("from " + p.src + ":" + p.dMin + " to " + p.farthest + ":" + p.dMax);
+        for (int i = 0; i < p.d.length; i++) {
+            System.out.println(i + ":" + p.d[i] + " p=" + p.p[i]);
+        }
+        int[] path = new int[(int) (p.dMax + 1)];
+        int i = path.length - 1;
+        path[i] = p.farthest;
+        while (p.p[path[i]] != -1) {
+            int prev = p.p[path[i]];
+            path[--i] = prev;
+        }
+        path[0] = p.src;
+        for (int v : path) {
+            System.out.print(v + "(" + p.d[v] + ") ");
+        }
+        System.out.println();
+        return new VectorPair(x, y);
+    }
+    
     public static void edgeListToVertexSet(List<Edge> edges, Set<Integer> vertices) {
         vertices.clear();
         for (Edge e : edges) {
-            vertices.add(e.getNodeA());
-            vertices.add(e.getNodeB());
+            vertices.add(e.getVertexA());
+            vertices.add(e.getVertexB());
         }
     }
 
     public static List<Edge> boundary_tst(Graph g) {
-        Integer[] nodes = g.getNodeNumbers().toArray(new Integer[0]);
+        Integer[] nodes = g.getVerticesNumbers().toArray(new Integer[0]);
         Arrays.sort(nodes);
         int[] nonWghtDeg = new int[nodes.length];
         double avg = 0.0;
@@ -796,7 +905,7 @@ public class GraphAlgorithms {
         bE.retainAll(g.getConnectionsList(k));
         List<Edge> bEL = new ArrayList<>(bE);
         System.out.println(bEL.get(0));
-        int endV = bEL.get(0).getNodeA() == bnd.get(0) ? bEL.get(0).getNodeB() : bEL.get(0).getNodeA();
+        int endV = bEL.get(0).getVertexA() == bnd.get(0) ? bEL.get(0).getVertexB() : bEL.get(0).getVertexA();
         int startV = bnd.get(0);
         bnd.remove(0);
         bnd.remove((Integer) endV);
@@ -807,7 +916,7 @@ public class GraphAlgorithms {
                 Edge e = g.getEdge(endV, bnd.get(v));
                 if (e != null) {
                     bEL.add(e);
-                    endV = e.getNodeA() == endV ? e.getNodeB() : e.getNodeA();
+                    endV = e.getVertexA() == endV ? e.getVertexB() : e.getVertexA();
                     bnd.remove((Integer) endV);
                     break;
                 } else {
@@ -823,7 +932,7 @@ public class GraphAlgorithms {
     }
 
     public static int initialV(Graph g) {
-        Integer[] nodes = g.getNodeNumbers().toArray(new Integer[0]);
+        Integer[] nodes = g.getVerticesNumbers().toArray(new Integer[0]);
         Arrays.sort(nodes);
         int[] nonWghtDeg = new int[nodes.length];
         for (int i = 0; i < nonWghtDeg.length; i++) {
@@ -835,7 +944,7 @@ public class GraphAlgorithms {
     }
 
     public static Graph boundary(Graph g) {
-        Integer[] nodes = g.getNodeNumbers().toArray(new Integer[0]);
+        Integer[] nodes = g.getVerticesNumbers().toArray(new Integer[0]);
         Arrays.sort(nodes);
         int[] nonWghtDeg = new int[nodes.length];
         double avg = 0.0;
@@ -849,85 +958,41 @@ public class GraphAlgorithms {
         ModifiableGraph b = new ModifiableGraph();
         int i = 0;
         System.out.print(avg + " -> BND: ");
-        while (nonWghtDeg[nodes[i]] < avg) {
+        while (nonWghtDeg[nodes[i]] < avg ) {
             System.out.print(nodes[i] + " ");
-            Set<Edge> es = g.getConnectionsList(nodes[i]);
-            for (Edge e : es) {
-                b.addEdge(e);
-            }
             i++;
+        }
+        Edge e;
+        for( int j= 0; j < i; j++ )
+            for( int k= j+1; k < i; k++ )
+                if( (e= g.getEdge(nodes[j], nodes[k])) != null ) {
+                    b.addEdge(e);
+                    System.out.println( nodes[j] + "_" + nodes[k]);
+                }
+        
+        System.out.println();
+        System.out.println("BND Graph: " + b.getNumVertices() + ";" + b.getAllEdges().size());
+        int n = 0;
+        for (Integer v : b.getVerticesNumbers()) {
+            System.out.println((++n) + ": " + v);
         }
         return prim(b);
     }
 
-    public static SparseMatrix laplacian(Graph g) {
-        Integer[] indexToVertex = g.getNodeNumbers().toArray(new Integer[0]);
-        Arrays.sort(indexToVertex);
-        for (Integer v : indexToVertex) {
-            System.err.print(v + " ");
-        }
-        System.err.println();
-
-        Map<Integer, Integer> vertexToIndex = new HashMap<>();
-        for (int i = 0; i < indexToVertex.length; i++) {
-            vertexToIndex.put(indexToVertex[i], i);
-        }
-
-        for (Integer v : vertexToIndex.keySet()) {
-            System.err.print(v + "->" + vertexToIndex.get(v) + " ");
-        }
-        System.err.println();
-
-        HashMapSparseMatrix L = new HashMapSparseMatrix(indexToVertex.length);
-        for (int i = 0; i < indexToVertex.length; i++) {
-            Set<Integer> neighbours = g.getNeighbours(indexToVertex[i]);
-            L.set(i, i, neighbours.size());
-            for (Integer v : neighbours) {
-                L.set(i, vertexToIndex.get(v), -1);
-                L.set(vertexToIndex.get(v), i, -1);
+    public static void main(String[] args) {
+        try (Reader r = new FileReader(new File("/home/jstar/NetBeansProjects/jgraphs/test/4.1.edges"))) {
+            Graph g = GraphIO.readEdgeList(r);
+            System.out.println(g.getNumVertices());
+            int n = 0;
+            for (Integer v : g.getVerticesNumbers()) {
+                System.out.println((++n) + ": " + v);
             }
-        }
-        return L.toCRSsorted();
-    }
-
-    public static SparseMatrix weightedLaplacian(Graph g) {
-        Integer[] indexToVertex = g.getNodeNumbers().toArray(new Integer[0]);
-        Arrays.sort(indexToVertex);
-        /*
-        for (Integer v : indexToVertex) {
-            System.err.print(v + " ");
-        }
-        System.err.println();
-*/
-        Map<Integer, Integer> vertexToIndex = new HashMap<>();
-        for (int i = 0; i < indexToVertex.length; i++) {
-            vertexToIndex.put(indexToVertex[i], i);
-        }
-
-        /*
-        for (Integer v : vertexToIndex.keySet()) {
-            System.err.print(v + "->" + vertexToIndex.get(v) + " ");
-        }
-        System.err.println();
-*/
-
-        HashMapSparseMatrix L = new HashMapSparseMatrix(indexToVertex.length);
-        for (int i = 0; i < indexToVertex.length; i++) {
-            Set<Edge> edges = g.getConnectionsList(indexToVertex[i]);
-            double diag = 0.0;
-            for (Edge e : edges) {
-                diag += e.getWeight();
+            VectorPair v = GraphAlgorithms.vertexCoordinates(g);
+            for (int i = 0; i < v.x.length; i++) {
+                System.out.println(v.x[i] + " " + v.y[i]);
             }
-            L.set( i, i, diag);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        Set<Edge> es = g.getAllEdges();
-        for (Edge e : es) {
-            Integer iA = vertexToIndex.get(e.getNodeA());
-            Integer iB = vertexToIndex.get(e.getNodeB());
-            double w = - e.getWeight();
-            L.set( iA, iB, w );
-            L.set( iB, iA, w );
-        }
-        return L.toCRSsorted();
     }
 }

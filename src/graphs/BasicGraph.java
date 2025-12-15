@@ -10,16 +10,16 @@ import java.util.Set;
  */
 public class BasicGraph implements Graph {
 
-    protected int nextNodeNo = 0;
+    protected int nextVertexNo = 0;
     protected HashMap<Integer, HashSet<Edge>> connectLists = new HashMap<>();
-    protected HashMap<Integer, String> nodeLabels = new HashMap<>();
+    protected HashMap<Integer, String> vertexLabels = new HashMap<>();
 
     private double minEdgeWeight, maxEdgeWeight;
 
     public BasicGraph() {}
 
-    public BasicGraph(int nextNodeNo,HashMap<Integer, HashSet<Edge>> connectLists  ) {
-        this.nextNodeNo = nextNodeNo;
+    public BasicGraph(int nextVertexNo,HashMap<Integer, HashSet<Edge>> connectLists  ) {
+        this.nextVertexNo = nextVertexNo;
         this.connectLists = connectLists;
     }
 
@@ -27,15 +27,23 @@ public class BasicGraph implements Graph {
      * @return the number of Nodes
      */
     @Override
-    public int getNumNodes() {
+    public int getNumVertices() {
         return connectLists == null ? 0 : connectLists.size();
+    }
+    
+    /**
+     * @return true if this graph contains vertex numbered number
+     */
+    @Override
+    public boolean hasVertex(int number) {
+        return connectLists.containsKey(number);
     }
 
     /**
      * @return numbers of Nodes
      */
     @Override
-    public Set<Integer> getNodeNumbers() {
+    public Set<Integer> getVerticesNumbers() {
         return connectLists.keySet();
     }
 
@@ -55,9 +63,9 @@ public class BasicGraph implements Graph {
      * @return the label of given node
      */
     @Override
-    public String getNodeLabel(int n) {
+    public String getVertexLabel(int n) {
         if (connectLists != null && connectLists.containsKey(n)) {
-            return nodeLabels.get(n);
+            return vertexLabels.get(n);
         } else {
             return null;
         }
@@ -88,7 +96,7 @@ public class BasicGraph implements Graph {
     protected void updateEdgesWeights() {
         minEdgeWeight = Double.POSITIVE_INFINITY;
         maxEdgeWeight = Double.NEGATIVE_INFINITY;
-        for (int i = 0; i < nextNodeNo; i++) {
+        for (int i = 0; i < nextVertexNo; i++) {
             for (Edge e : connectLists.get(i)) {
                 double w = e.getWeight();
                 if (w < minEdgeWeight) {

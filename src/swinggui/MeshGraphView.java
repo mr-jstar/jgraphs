@@ -22,7 +22,7 @@ public class MeshGraphView implements GraphView {
     public MeshGraphView(IMesh mesh) {
         this.mesh = mesh;
         this.graph = Util.graphOfIMesh(mesh);
-        rc = new int[graph.getNumNodes()][2];
+        rc = new int[graph.getNumVertices()][2];
     }
 
     @Override

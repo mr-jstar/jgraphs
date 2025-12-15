@@ -9,7 +9,7 @@ import java.util.HashSet;
 public class ModifiableGraph extends BasicGraph implements GraphBuilder  {
 
     @Override
-    public boolean hasNode(int number) {
+    public boolean hasVertex(int number) {
         return connectLists.containsKey(number);
     }
 
@@ -22,15 +22,15 @@ public class ModifiableGraph extends BasicGraph implements GraphBuilder  {
             return false;
         }
         for (Edge e : connectLists.get(nodeA)) {
-            int nA = e.getNodeA();
-            int nB = e.getNodeB();
+            int nA = e.getVertexA();
+            int nB = e.getVertexB();
             if (nA == nodeA && nB == nodeB || nA == nodeB && nB == nodeA) {
                 return true;
             }
         }
         for (Edge e : connectLists.get(nodeB)) {
-            int nA = e.getNodeA();
-            int nB = e.getNodeB();
+            int nA = e.getVertexA();
+            int nB = e.getVertexB();
             if (nA == nodeA && nB == nodeB || nA == nodeB && nB == nodeA) {
                 return true;
             }
@@ -39,18 +39,18 @@ public class ModifiableGraph extends BasicGraph implements GraphBuilder  {
     }
 
     @Override
-    public void addNode() {
-        connectLists.put(++nextNodeNo, new HashSet<>());
-        nodeLabels.put(nextNodeNo, "" + nextNodeNo);
+    public void addVertex() {
+        connectLists.put(++nextVertexNo, new HashSet<>());
+        vertexLabels.put(nextVertexNo, "" + nextVertexNo);
     }
 
     @Override
-    public void addNode(int number) {
+    public void addVertex(int number) {
         if (!connectLists.containsKey(number)) {
             connectLists.put(number, new HashSet<>());
-            nodeLabels.put(number, "" + number);
-            if (number >= nextNodeNo) {
-                nextNodeNo = number + 1;
+            vertexLabels.put(number, "" + number);
+            if (number >= nextVertexNo) {
+                nextVertexNo = number + 1;
             }
         }
     }
@@ -62,37 +62,37 @@ public class ModifiableGraph extends BasicGraph implements GraphBuilder  {
 
     @Override
     public void addEdge(int first, int second, double weight) {
-        addNode(first);
-        addNode(second);
+        addVertex(first);
+        addVertex(second);
         connectLists.get(first).add(new Edge(first, second, weight));
         connectLists.get(second).add(new Edge(second, first, weight));
     }
 
     @Override
     public void addEdge(Edge e) {
-        addNode(e.getNodeA());
-        addNode(e.getNodeB());
-        connectLists.get(e.getNodeA()).add(e);
-        connectLists.get(e.getNodeB()).add(e);
+        addVertex(e.getVertexA());
+        addVertex(e.getVertexB());
+        connectLists.get(e.getVertexA()).add(e);
+        connectLists.get(e.getVertexB()).add(e);
     }
 
     @Override
     public void addGraph( Graph  g ) {
-        for( Integer i : g.getNodeNumbers()) {
-            addNode(i);
+        for( Integer i : g.getVerticesNumbers()) {
+            addVertex(i);
         }
-        for( Integer i : g.getNodeNumbers()) {
+        for( Integer i : g.getVerticesNumbers()) {
             for( Edge e : g.getConnectionsList(i))
                 addEdge(e);
         }
     }
 
     @Override
-    public void setNodeLabel(int n, String label) {
-        if (nodeLabels.containsKey(n)) {
-            nodeLabels.remove(n);
+    public void setVertexLabel(int n, String label) {
+        if (vertexLabels.containsKey(n)) {
+            vertexLabels.remove(n);
         }
-        nodeLabels.put(n, label);
+        vertexLabels.put(n, label);
     }
 
     @Override

@@ -28,7 +28,7 @@ public class AnyGraphView implements GraphView {
 
     public AnyGraphView(Graph graph) {
         this.graph = graph;
-        rc = new int[graph.getNumNodes()][2];
+        rc = new int[graph.getNumVertices()][2];
     }
 
     @Override
@@ -63,26 +63,26 @@ public class AnyGraphView implements GraphView {
         if (last_width == -1 || last_height == -1) {
             SparseMatrix L = GraphAlgorithms.weightedLaplacian(graph);
             //System.out.println(L);
-            double [] x = new double[graph.getNumNodes()];
+            double [] x = new double[graph.getNumVertices()];
             double [] y = new double[x.length];
             EigenValues.powerIteration(L, 1e-6, x);
             EigenValues.powerIterationSecondEigen(L, 1e-6, x, y);
             System.out.println( "x.y=" + EigenValues.dot(x,y));
-            this.nodeSize = (int) (height / graph.getNumNodes());
+            this.nodeSize = (int) (height / graph.getNumVertices());
             this.nodeSize = this.nodeSize > MAX_NODE_SIZE ? MAX_NODE_SIZE : this.nodeSize;
             this.nodeSize = this.nodeSize < MIN_NODE_SIZE ? MIN_NODE_SIZE : this.nodeSize;
             leftSep = leftSep < 2 * nodeSize ? 2 * nodeSize : leftSep;
             topSep = leftSep;
             normalize( x );
             normalize( y );
-            for (int v = 0; v < graph.getNumNodes(); v++) {
+            for (int v = 0; v < graph.getNumVertices(); v++) {
                 rc[v][0] = leftSep + (int) ((width - 2 * leftSep) * x[v]);
                 rc[v][1] = topSep + (int) ((height - 2 * topSep) * y[v]);
             }
         } else {
             double w_ratio = (double) width / last_width;
             double h_ratio = (double) height / last_height;
-            for (int v = 0; v < graph.getNumNodes(); v++) {
+            for (int v = 0; v < graph.getNumVertices(); v++) {
                 rc[v][0] = (int) (rc[v][0] * w_ratio);
                 rc[v][1] = (int) (rc[v][1] * h_ratio);
             }
@@ -106,7 +106,7 @@ public class AnyGraphView implements GraphView {
     public int getNodeNum(int x, int y) {
         int i = -1;
         double d2 = Double.POSITIVE_INFINITY;
-        for (int v = 0; v < graph.getNumNodes(); v++) {
+        for (int v = 0; v < graph.getNumVertices(); v++) {
             double cd2 = (x - rc[v][0]) * (x - rc[v][0]) + (y - rc[v][1]) * (y - rc[v][1]);
             if (cd2 < d2) {
                 d2 = cd2;

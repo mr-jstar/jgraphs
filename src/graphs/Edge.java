@@ -9,43 +9,43 @@ import java.util.Objects;
  */
 public class Edge implements EdgeInterface {
 
-    private int nodeA;
-    private int nodeB;
+    private int vertexA;
+    private int vertexB;
     private double weight;
     private String name;
 
     public Edge(int nA, int nB, double w) {
-        nodeA = nA;
-        nodeB = nB;
+        vertexA = nA;
+        vertexB = nB;
         weight = w;
     }
 
     /**
-     * @return the nodeA
+     * @return the vertexA
      */
-    public int getNodeA() {
-        return nodeA;
+    public int getVertexA() {
+        return vertexA;
     }
 
     /**
-     * @param nodeA the nodeA to set
+     * @param nodeA the vertexA to set
      */
     public void setNodeA(int nodeA) {
-        this.nodeA = nodeA;
+        this.vertexA = nodeA;
     }
 
     /**
-     * @return the nodeB
+     * @return the vertexB
      */
-    public int getNodeB() {
-        return nodeB;
+    public int getVertexB() {
+        return vertexB;
     }
 
     /**
-     * @param nodeB the nodeB to set
+     * @param nodeB the vertexB to set
      */
     public void setNodeB(int nodeB) {
-        this.nodeB = nodeB;
+        this.vertexB = nodeB;
     }
 
     /**
@@ -71,19 +71,19 @@ public class Edge implements EdgeInterface {
 
     @Override
     public String toString() {
-        return (name == null ? "" : name+" ") + nodeA + "-(" + weight + ")-" + nodeB;
+        return (name == null ? "" : name+" ") + vertexA + "-(" + weight + ")-" + vertexB;
     }
 
     @Override
     public boolean equals(Object o) {
         return o instanceof Edge
-                && (((Edge) o).nodeA == nodeA && ((Edge) o).nodeB == nodeB || ((Edge) o).nodeA == nodeB && ((Edge) o).nodeB == nodeA)
+                && (((Edge) o).vertexA == vertexA && ((Edge) o).vertexB == vertexB || ((Edge) o).vertexA == vertexB && ((Edge) o).vertexB == vertexA)
                 && ((Edge) o).weight == weight;
     }
 
     @Override
     public int hashCode() {
-        return 7 * nodeA + 17 * nodeB + 251 * Objects.hash(weight) + 31 * Objects.hash(name);
+        return 7 * vertexA + 17 * vertexB + 251 * Objects.hash(weight) + 31 * Objects.hash(name);
     }
 
     @Override

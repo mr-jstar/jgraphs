@@ -17,7 +17,7 @@ public class DirGridGraph extends GridGraph {
     public DirGridGraph(int nC, int nR, double wMin, double wMax, double avgEdgesPerNode) {
         numColumns = nC;
         numRows = nR;
-        nextNodeNo = numColumns * numRows;
+        nextVertexNo = numColumns * numRows;
         double dW = wMax - wMin;
         connectLists = new HashMap<>();
         for (int c = 0; c < numColumns; c++) {
@@ -28,7 +28,7 @@ public class DirGridGraph extends GridGraph {
                 if (nn >= numRows && rand.nextDouble() < avgEdgesPerNode / 4) {
                     list.add(new Edge(nn, nn - getNumRows(), wMin + dW * rand.nextDouble()));
                 }
-                if (nn < nextNodeNo - numRows && rand.nextDouble() < avgEdgesPerNode / 4) {
+                if (nn < nextVertexNo - numRows && rand.nextDouble() < avgEdgesPerNode / 4) {
                     list.add(new Edge(nn, nn + getNumRows(), wMin + dW * rand.nextDouble()));
                 }
                 if (r > 0 && rand.nextDouble() < avgEdgesPerNode / 4) {

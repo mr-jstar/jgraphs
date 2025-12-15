@@ -25,7 +25,7 @@ public class GridGraph extends BasicGraph {
         super();
         numColumns = nC;
         numRows = nR;
-        nextNodeNo = numColumns * numRows;
+        nextVertexNo = numColumns * numRows;
         int nMax = numColumns * numRows;
         double dW = wMax - wMin;
         for (int c = 0; c < numColumns; c++) {
@@ -67,7 +67,7 @@ public class GridGraph extends BasicGraph {
         super();
         numColumns = nC;
         numRows = nR;
-        nextNodeNo = numColumns * numRows;
+        nextVertexNo = numColumns * numRows;
         int nMax = numColumns * numRows;
         for (int c = 0; c < numColumns; c++) {
             for (int r = 0; r < numRows; r++) {
@@ -81,7 +81,7 @@ public class GridGraph extends BasicGraph {
         super();
         numColumns = nC;
         numRows = nR;
-        nextNodeNo = numColumns * numRows;
+        nextVertexNo = numColumns * numRows;
         int nMax = numColumns * numRows;
         this.connectLists = connectLists;
         updateEdgesWeights();
@@ -112,7 +112,7 @@ public class GridGraph extends BasicGraph {
      * @return the number of Nodes
      */
     @Override
-    public int getNumNodes() {
+    public int getNumVertices() {
         return numColumns * numRows;
     }
 
@@ -120,7 +120,7 @@ public class GridGraph extends BasicGraph {
      * @return the label of given node
      */
     @Override
-    public String getNodeLabel(int n) {
+    public String getVertexLabel(int n) {
         if (n >= 0 && n < numColumns * numRows) {
             return "" + n;
         } else {

@@ -499,7 +499,7 @@ public class FXGUI extends Application {
 
         gc.setFill(Color.BLACK);
         gc.fillRect(0, 0, width, height);
-        if (graph == null || graph.getNumNodes() < 1) {
+        if (graph == null || graph.getNumVertices() < 1) {
             return;
         }
         gc.setFill(Color.GREY);
@@ -519,20 +519,20 @@ public class FXGUI extends Application {
         nodeSize = (int) (nodeSize * nodeSep / BASICNODESEP);
         nodeSize = nodeSize < MINNODESIZE ? MINNODESIZE : nodeSize;
         //System.out.println("Node size: " + nodeSize + " sep: " + nodeSep);
-        int[][] rc = new int[graph.getNumNodes()][2];
-        for (int n = 0; n < graph.getNumNodes(); n++) {
+        int[][] rc = new int[graph.getNumVertices()][2];
+        for (int n = 0; n < graph.getNumVertices(); n++) {
             rc[n][0] = n % rows;  // column
             rc[n][1] = n / rows;  // row
             //System.out.println(n + "-> r=" + rc[n][0] + " c=" + rc[n][1]);
         }
-        for (int n = 0; n < graph.getNumNodes(); n++) {
+        for (int n = 0; n < graph.getNumVertices(); n++) {
             Set<Edge> edges = graph.getConnectionsList(n);
             for (Edge e : edges) {
                 Color c = edgeCM.getColorForValue(e.getWeight());
-                //System.out.println(e.getNodeA() + "--" + e.getNodeB() + " : " + e.getWeight() + "->" + c);
+                //System.out.println(e.getVertexA() + "--" + e.getVertexB() + " : " + e.getWeight() + "->" + c);
                 gc.setStroke(c);
-                int nA = e.getNodeA();
-                int nB = e.getNodeB();
+                int nA = e.getVertexA();
+                int nB = e.getVertexB();
                 gc.strokeLine(leftSep + nodeSize / 2 + rc[nA][1] * nodeSep, topSep + nodeSize / 2 + rc[nA][0] * nodeSep, leftSep + nodeSize / 2 + rc[nB][1] * nodeSep, topSep + nodeSize / 2 + rc[nB][0] * nodeSep);
             }
         }
@@ -547,7 +547,7 @@ public class FXGUI extends Application {
 
         gc.setFill(Color.BLACK);
         gc.fillRect(0, 0, width, height);
-        if (graph == null || mst == null || graph.getNumNodes() < 1) {
+        if (graph == null || mst == null || graph.getNumVertices() < 1) {
             return;
         }
         gc.setFill(Color.GREY);
@@ -566,20 +566,20 @@ public class FXGUI extends Application {
         nodeSize = (int) (nodeSize * nodeSep / BASICNODESEP);
         nodeSize = nodeSize < MINNODESIZE ? MINNODESIZE : nodeSize;
         //System.out.println("Node size: " + nodeSize + " sep: " + nodeSep);
-        int[][] rc = new int[graph.getNumNodes()][2];
-        for (int n = 0; n < graph.getNumNodes(); n++) {
+        int[][] rc = new int[graph.getNumVertices()][2];
+        for (int n = 0; n < graph.getNumVertices(); n++) {
             rc[n][0] = n % rows;  // column
             rc[n][1] = n / rows;  // row
             //System.out.println(n + "-> r=" + rc[n][0] + " c=" + rc[n][1]);
         }
-        for (int n = 0; n < graph.getNumNodes(); n++) {
+        for (int n = 0; n < graph.getNumVertices(); n++) {
             Set<Edge> edges = mst.getConnectionsList(n);
             for (Edge e : edges) {
                 Color c = edgeCM.getColorForValue(e.getWeight());
-                //System.out.println(e.getNodeA() + "--" + e.getNodeB() + " : " + e.getWeight() + "->" + c);
+                //System.out.println(e.getVertexA() + "--" + e.getVertexB() + " : " + e.getWeight() + "->" + c);
                 gc.setStroke(c);
-                int nA = e.getNodeA();
-                int nB = e.getNodeB();
+                int nA = e.getVertexA();
+                int nB = e.getVertexB();
                 gc.strokeLine(leftSep + nodeSize / 2 + rc[nA][1] * nodeSep, topSep + nodeSize / 2 + rc[nA][0] * nodeSep, leftSep + nodeSize / 2 + rc[nB][1] * nodeSep, topSep + nodeSize / 2 + rc[nB][0] * nodeSep);
             }
         }
@@ -591,7 +591,7 @@ public class FXGUI extends Application {
     }
 
     private void colorNodes(GraphicsContext gc, double width, double height) {
-        if (graph == null || graph.getNumNodes() < 1) {
+        if (graph == null || graph.getNumVertices() < 1) {
             return;
         }
         double[] colors = pathsSS.d;
@@ -607,7 +607,7 @@ public class FXGUI extends Application {
     }
 
     private void drawPath(GraphicsContext gc, double width, double height, ArrayList<Integer> path) {
-        if (graph == null || graph.getNumNodes() < 1) {
+        if (graph == null || graph.getNumVertices() < 1) {
             return;
         }
         gc.setLineWidth(4);

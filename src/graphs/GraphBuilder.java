@@ -6,13 +6,11 @@ package graphs;
  */
 public interface GraphBuilder  {
 
-    public void addNode(); // with subsequent number
-
-    public boolean hasNode(int number);
+    public void addVertex(); // with subsequent number
 
     public boolean hasEdge(int nodeA, int nodeB);
 
-    public void addNode(int number);
+    public void addVertex(int number);
 
     public void addEdge(int first, int second);  // weight == 1
 
@@ -22,7 +20,7 @@ public interface GraphBuilder  {
 
     public void addGraph(Graph g);
 
-    public void setNodeLabel(int n, String label);
+    public void setVertexLabel(int n, String label);
 
     public Graph getGraph();
 }

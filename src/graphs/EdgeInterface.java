@@ -1,7 +1,5 @@
 package graphs;
 
-import java.util.Objects;
-
 /**
  *  Undirected edge in a weighted graph (see equals method)
  *
@@ -9,9 +7,9 @@ import java.util.Objects;
  */
 public interface EdgeInterface extends Comparable<EdgeInterface> {   
 
-    public int getNodeA();
+    public int getVertexA();
 
-    public int getNodeB();
+    public int getVertexB();
 
     public double getWeight();
     

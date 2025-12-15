@@ -139,7 +139,7 @@ public class Util {
     public static Graph graphOfIMesh( IMesh mesh ) {
         ModifiableGraph g = new ModifiableGraph();
         for( int v = 0; v < mesh.getNoVertices(); v++ )
-            g.addNode(v);
+            g.addVertex(v);
         Set<Edge> edges = new HashSet<>();
         for( int e = 0; e < mesh.getNoElems(); e++ ) {
             int [] vs = mesh.getElem(e).getVertices();

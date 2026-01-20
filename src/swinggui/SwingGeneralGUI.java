@@ -43,7 +43,7 @@ public class SwingGeneralGUI extends JFrame {
     final static String[] algorithms = {
         "BFS", "DFS Recursive", "DFS Iterative",
         "Dijkstra", "Bellman-Ford", "Floyd-Warshall",
-        "Prim", "Prim_CLRS", "Kruskal",
+        "Prim", "Prim_CLRS", "Kruskal", "Kruskal_DSU",
         "Kernighan-Lin"
     };
 
@@ -359,8 +359,7 @@ public class SwingGeneralGUI extends JFrame {
         algGroup = new ButtonGroup();
         String aToolTip = " Click the node you want to start with.";
         JPanel abPanel = new JPanel();
-        abPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        int ac = 0;
+        abPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
         JMenu aM = new JMenu("Algorithms");
         aM.setFont(currentFont);
         for (String s : algorithms) {
@@ -568,6 +567,18 @@ public class SwingGeneralGUI extends JFrame {
                                 System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
                                 pathsSS = null;
                                 pathsAll = null;
+                            } else if (selectedtAlgorithm.equals("Kruskal_DSU")) {
+                                System.out.println("MST by Kruskal_DSU");
+                                long start = System.nanoTime();
+                                mst = GraphAlgorithms.kruskalDSU(graph);
+                                long finish = System.nanoTime();
+                                System.out.println((finish - start) / 1e6 + " miliseconds");
+                                if (graph instanceof GridGraph) {
+                                    GraphIO.saveGridGraph(new GridGraph(((GridGraph) graph).getNumColumns(), ((GridGraph) graph).getNumRows(), mst), new PrintWriter(new File("LastMST")));
+                                }
+                                System.out.println("MST generated and saved as GridGraph to file \"LastMST\"");
+                                pathsSS = null;
+                                pathsAll = null;
                             } else if (selectedtAlgorithm.equals("Prim")) {
                                 Thread t = new Thread() {
                                     {
@@ -691,6 +702,7 @@ public class SwingGeneralGUI extends JFrame {
                     }
                 } catch (Exception ex) {
                     error(ex.getClass() + ": " + ex.getLocalizedMessage());
+                    ex.printStackTrace();
                 }
                 algPanel.setBackground(Color.LIGHT_GRAY);
             }

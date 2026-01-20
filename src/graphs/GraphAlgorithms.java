@@ -300,6 +300,39 @@ public class GraphAlgorithms {
         return mst;
     }
 
+    public static Graph kruskalDSU(Graph g) {
+        PriorityQueue<Edge> pq = new PriorityQueue<>();
+        List<Integer> vertsIndices = new ArrayList<>();  // assigns a continuous numbering to the vertices, from 0 to n.
+        int forestSize = 0;
+        for (Integer v : g.getVerticesNumbers()) {
+            vertsIndices.add(v, forestSize++);
+            for (Edge e : g.getConnectionsList(v)) {
+                pq.add(e);
+            }
+        }
+        System.out.println( vertsIndices );
+
+        DSU dsu = new DSU(forestSize);
+        
+        System.out.println( dsu );
+
+        ModifiableGraph mst = new ModifiableGraph();
+        while (!pq.isEmpty() && forestSize > 1) {
+            Edge se = pq.poll();
+            int nA = se.getVertexA();
+            int nB = se.getVertexB();
+
+            if (dsu.differentSets(vertsIndices.get(nA), vertsIndices.get(nB))) {
+                dsu.union(vertsIndices.get(nA), vertsIndices.get(nB));
+                System.out.println( dsu );
+                mst.addEdge(se);
+                forestSize--;
+            }
+        }
+        System.out.println("Total weight " + weightSum(mst));
+        return mst;
+    }
+
     public static SingleSourceGraphPaths bfs(Graph g, int startNode) {
         if (g == null || !g.hasVertex(startNode)) {
             return null;
@@ -381,7 +414,7 @@ public class GraphAlgorithms {
         if (g == null || g.getNumVertices() < 1) {
             return null;
         }
-        int[] d = new int[g.maxVertexNo()+1];
+        int[] d = new int[g.maxVertexNo() + 1];
         int[] f = new int[d.length];
         int[] p = new int[d.length];
         java.util.Arrays.fill(d, -1);    // discovery "time"  -1 means "not visited"
@@ -429,11 +462,11 @@ public class GraphAlgorithms {
     }
 
     public static SingleSourceGraphPaths dijkstra(Graph g, int startNode) {
-        if (g == null || ! g.hasVertex(startNode)) {
+        if (g == null || !g.hasVertex(startNode)) {
             return null;
         }
         //System.out.println("Dijkstra, source=" + startNode);
-        int[] p = new int[g.maxVertexNo()+1];
+        int[] p = new int[g.maxVertexNo() + 1];
         double[] d = new double[p.length];
         java.util.Arrays.fill(d, Double.POSITIVE_INFINITY);
         java.util.Arrays.fill(p, -1);
@@ -462,11 +495,11 @@ public class GraphAlgorithms {
     }
 
     public static SingleSourceGraphPaths bellmanFord(Graph g, int startNode) {
-        if (g == null || ! g.hasVertex(startNode)) {
+        if (g == null || !g.hasVertex(startNode)) {
             return null;
         }
         //System.out.println("Dijkstra, source=" + startNode);
-        int nn = g.maxVertexNo()+1;
+        int nn = g.maxVertexNo() + 1;
         int[] p = new int[nn];
         double[] d = new double[nn];
         java.util.Arrays.fill(d, Double.POSITIVE_INFINITY);
@@ -517,7 +550,7 @@ public class GraphAlgorithms {
             return null;
         }
 
-        int nn = g.maxVertexNo()+1;
+        int nn = g.maxVertexNo() + 1;
         int[][] p = new int[nn][nn];
         double[][] d = new double[nn][nn];
         for (int i = 0; i < nn; i++) {
@@ -525,7 +558,7 @@ public class GraphAlgorithms {
             java.util.Arrays.fill(p[i], -1);
         }
         Set<Integer> vertices = g.getVerticesNumbers();
-        for (Integer i : vertices ) {
+        for (Integer i : vertices) {
             d[i][i] = 0;
         }
         Set<Edge> allEdges = g.getAllEdges();
@@ -539,8 +572,8 @@ public class GraphAlgorithms {
         }
 
         for (Integer m : vertices) {
-            for (Integer src : vertices ) {
-                for (Integer dst : vertices ) {
+            for (Integer src : vertices) {
+                for (Integer dst : vertices) {
                     if (d[src][dst] > d[src][m] + d[m][dst]) {
                         d[src][dst] = d[src][m] + d[m][dst];
                         p[src][dst] = p[m][dst];
@@ -862,7 +895,7 @@ public class GraphAlgorithms {
         System.out.println();
         return new VectorPair(x, y);
     }
-    
+
     public static void edgeListToVertexSet(List<Edge> edges, Set<Integer> vertices) {
         vertices.clear();
         for (Edge e : edges) {
@@ -959,18 +992,20 @@ public class GraphAlgorithms {
         ModifiableGraph b = new ModifiableGraph();
         int i = 0;
         System.out.print(avg + " -> BND: ");
-        while (nonWghtDeg[nodes[i]] < avg ) {
+        while (nonWghtDeg[nodes[i]] < avg) {
             System.out.print(nodes[i] + " ");
             i++;
         }
         Edge e;
-        for( int j= 0; j < i; j++ )
-            for( int k= j+1; k < i; k++ )
-                if( (e= g.getEdge(nodes[j], nodes[k])) != null ) {
+        for (int j = 0; j < i; j++) {
+            for (int k = j + 1; k < i; k++) {
+                if ((e = g.getEdge(nodes[j], nodes[k])) != null) {
                     b.addEdge(e);
-                    System.out.println( nodes[j] + "_" + nodes[k]);
+                    System.out.println(nodes[j] + "_" + nodes[k]);
                 }
-        
+            }
+        }
+
         System.out.println();
         System.out.println("BND Graph: " + b.getNumVertices() + ";" + b.getAllEdges().size());
         int n = 0;

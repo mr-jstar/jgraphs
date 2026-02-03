@@ -1,7 +1,5 @@
 package graphs;
 
-import graphs.AllToAllGraphPaths;
-import graphs.SingleSourceGraphPaths;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -310,11 +308,11 @@ public class GraphAlgorithms {
                 pq.add(e);
             }
         }
-        System.out.println( vertsIndices );
+        System.out.println(vertsIndices);
 
         DSU dsu = new DSU(forestSize);
-        
-        System.out.println( dsu );
+
+        System.out.println(dsu);
 
         ModifiableGraph mst = new ModifiableGraph();
         while (!pq.isEmpty() && forestSize > 1) {
@@ -324,7 +322,7 @@ public class GraphAlgorithms {
 
             if (dsu.differentSets(vertsIndices.get(nA), vertsIndices.get(nB))) {
                 dsu.union(vertsIndices.get(nA), vertsIndices.get(nB));
-                System.out.println( dsu );
+                System.out.println(dsu);
                 mst.addEdge(se);
                 forestSize--;
             }
@@ -508,7 +506,8 @@ public class GraphAlgorithms {
         p[startNode] = -1;  // made by Arrays.fill, repeated here for clarity
         d[startNode] = 0;
         Set<Edge> allEdges = g.getAllEdges();
-        for (Integer v : g.getVerticesNumbers()) { // as many repetitions as vertces
+        List<Integer> vertices = new ArrayList<>(g.getVerticesNumbers());
+        for (int i = 1; i < vertices.size(); i++) { // one less repetitions than vertces 
             for (Edge e : allEdges) {
                 int nA = e.getVertexA();
                 int nB = e.getVertexB();
@@ -517,6 +516,15 @@ public class GraphAlgorithms {
                     d[nA] = d[nB] + w;
                     p[nA] = nB;
                 }
+            }
+        }
+
+        for (Edge e : allEdges) {
+            int nA = e.getVertexA();
+            int nB = e.getVertexB();
+            double w = e.getWeight();
+            if (d[nA] > d[nB] + w) {
+                throw new IllegalArgumentException( "Negative cycle in graph " + g );
             }
         }
 
